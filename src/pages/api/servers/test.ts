@@ -4,7 +4,7 @@ import db from '@/lib/db';
 export default async function handler(req: any, res: any) {
   await connectDB();
   const { id } = req.query;
-  const server = await db.Server.findById(id);
+  const server = await Server.findById(id);
   if (!server) return res.status(404).json({ error: 'Server not found' });
 
   // Simulate connection test

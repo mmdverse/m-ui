@@ -27,7 +27,7 @@ export default function ConfigsPage() {
   function generateLink(config: any) {
     const base64 = btoa(JSON.stringify({
       v: '2', ps: config.name, add: servers.find(s => s._id === config.serverId)?.host || '',
-      port: config.port, id: crypto.randomUUID(), aid: '0', net: config.transport,
+      port: config.port, id: Math.random().toString(36).substr(2, 8) + "-" + Math.random().toString(36).substr(2, 4), aid: '0', net: config.transport,
       type: 'none', host: config.domain, path: config.path, tls: config.security === 'tls' ? 'tls' : '',
     }));
     return 'vmess://' + base64;

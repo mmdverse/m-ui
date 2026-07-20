@@ -4,6 +4,14 @@ import db from '@/lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await connectDB();
-  const servers = await db.Server.find().sort({ createdAt: -1 }).lean();
+  const servers = await Server.find().sort({ createdAt: -1 }).lean();
   res.json(servers);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: err.message || "Internal error" });
+  }
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({ error: err.message || "Internal error" });
+  }
 }

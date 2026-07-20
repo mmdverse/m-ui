@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/mui
+      - JWT_SECRET=change-this-in-production
+    depends_on: [mongo]
+    restart: unless-stopped
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes: [mongo_data:/data/db]
+    restart: unless-stopped
+volumes: { mongo_data: }

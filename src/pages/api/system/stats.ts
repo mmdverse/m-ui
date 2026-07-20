@@ -5,10 +5,10 @@ import db from '@/lib/db';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await connectDB();
   const [servers, configs, tunnels, users] = await Promise.all([
-    db.Server.find().lean(),
-    db.Config.find().lean(),
-    db.Tunnel.find().lean(),
-    db.User.find().lean(),
+    Server.find().lean(),
+    Config.find().lean(),
+    Tunnel.find().lean(),
+    User.find().lean(),
   ]);
 
   const onlineServers = servers.filter(s => s.status === 'online').length;
