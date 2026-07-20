@@ -1,17 +1,12 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB } from '@/lib/db';
-import db from '@/lib/db';
+import { Server } from '@/lib/db';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await connectDB();
-  const servers = await Server.find().sort({ createdAt: -1 }).lean();
-  res.json(servers);
+export default async function handler(req: any, res: any) {
+  try {
+    await connectDB();
+    const servers = await Server.find().sort({ createdAt: -1 }).lean();
+    res.json(servers);
   } catch (err: any) {
-    console.error(err);
-    res.status(500).json({ error: err.message || "Internal error" });
-  }
-  } catch (err: any) {
-    console.error(err);
-    return res.status(500).json({ error: err.message || "Internal error" });
+    res.status(500).json({ error: err.message });
   }
 }

@@ -12,7 +12,7 @@ export default function SettingsPage() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
         {['general', 'backup', 'security', 'about'].map(t => (
           <button key={t} onClick={() => setTab(t)}
-            style={{ padding: '10px 20px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            style={{ padding: '10px 20px', borderRadius: 8, cursor: 'pointer',
               background: tab === t ? '#03a66d' : '#1e1e2e', color: tab === t ? 'white' : '#a0a0b0',
               border: tab === t ? 'none' : '1px solid #313244', fontSize: 13,
             }}>{t === 'general' ? '📋 عمومی' : t === 'backup' ? '💾 بکاپ' : t === 'security' ? '🔒 امنیت' : 'ℹ️ درباره'}</button>
