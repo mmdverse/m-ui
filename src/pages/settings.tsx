@@ -23,7 +23,7 @@ export default function SettingsPage() {
           <>
             <h2 style={{ fontSize: 16, marginBottom: 16 }}>📋 تنظیمات عمومی</h2>
             <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 4 }}>نام پنل</label>
-            <input defaultValue="M-UI" style={s} />
+            <input placeholder="مثلاً M-UI" style={s} />
             <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 4, marginTop: 12 }}>پورت پنل</label>
             <input defaultValue="3000" style={s} />
             <button style={{...btnStyle, marginTop: 16}}>💾 ذخیره</button>
