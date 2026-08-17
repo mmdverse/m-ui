@@ -54,7 +54,7 @@
 ## 🚀 شروع سریع
 
 ```bash
-git clone https://github.com/mamadiezad/m-ui.git
+git clone https://github.com/mmdverse/m-ui.git
 cd m-ui
 npm install
 cp .env.example .env.local
@@ -66,7 +66,7 @@ npm run dev
 ```bash
 docker run -d --name m-ui -p 3000:3000 \
   -e MONGODB_URI=mongodb://mongo:27017/mui \
-  mamadiezad/m-ui
+  mmdverse/m-ui
 ```
 
 ---
