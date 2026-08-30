@@ -15,6 +15,7 @@ const ServerSchema = new mongoose.Schema({
   password: { type: String, default: '' },
   sshKey: { type: String, default: '' }, // PEM private key (authType = 'key')
   location: { type: String, default: 'ایران' },
+  geoSource: { type: String, enum: ['auto', 'manual', 'none'], default: 'none' },
   status: { type: String, enum: ['online', 'offline', 'error', 'unknown'], default: 'unknown' },
   isTunnel: { type: Boolean, default: false },
   cpuUsage: { type: Number, default: 0 },
@@ -44,6 +45,9 @@ const ConfigSchema = new mongoose.Schema({
   path: { type: String },
   sni: { type: String },
   password: { type: String, default: '' }, // used by trojan/ss protocols
+  pbk: { type: String, default: '' }, // REALITY public key
+  fp: { type: String, default: 'chrome' }, // REALITY fingerprint
+  sid: { type: String, default: '' }, // REALITY shortId
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
 });

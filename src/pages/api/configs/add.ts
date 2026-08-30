@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
     await connectDB();
-    const { name, serverId, protocol, port, transport, security, domain, path, sni } = req.body || {};
+    const { name, serverId, protocol, port, transport, security, domain, path, sni, pbk, fp, sid } = req.body || {};
     if (!name || !serverId || !port) return res.status(400).json({ error: 'name, serverId and port are required' });
     if (!PROTOCOLS.includes(protocol)) return res.status(400).json({ error: 'invalid protocol' });
 
@@ -30,6 +30,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       domain: domain || '',
       path: path || '/',
       sni: sni || '',
+      pbk: pbk || '',
+      fp: ['chrome', 'firefox', 'edge', 'safari', 'ios', 'android', '360', 'qq'].includes(fp) ? fp : 'chrome',
+      sid: sid || '',
       isActive: true,
     });
     await recordActivity(`کانفیگ «${config.name}» ایجاد شد`, 'info', payload.username);

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB, Server } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
+import { detectLocation } from '@/lib/geo';
 import { recordActivity } from '@/lib/activity';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,6 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!['password', 'key'].includes(authType)) {
       return res.status(400).json({ error: 'authType must be password or key' });
     }
+
+    // location: auto-detect from the host, fall back to the manual label
+    const geo = await detectLocation(String(host));
+    const finalLocation = geo ? geo.location : location || 'نامشخص';
+
     const server = await Server.create({
       name: String(name),
       host: String(host),
@@ -22,10 +28,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       authType,
       password: authType === 'password' ? String(password || '') : '',
       sshKey: authType === 'key' ? String(sshKey || '') : '',
-      location: location || 'ایران',
+      location: finalLocation,
+      geoSource: geo ? 'auto' : location ? 'manual' : 'none',
       status: 'unknown',
     });
-    await recordActivity(`سرور «${server.name}» اضافه شد`, 'info', payload.username);
+    await recordActivity(
+      `سرور «${server.name}» اضافه شد (موقعیت: ${finalLocation})`,
+      'info',
+      payload.username
+    );
     res.json({ success: true, server });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

@@ -101,7 +101,9 @@ export default function ServersPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: server.status === 'online' ? '#22c55e' : server.status === 'error' ? '#ef4444' : '#6b7280', display: 'inline-block' }} />
                 <span style={{ fontWeight: 600 }}>{server.name}</span>
-                <span style={{ fontSize: 12, color: '#6b7280' }}>({server.location})</span>
+                <span style={{ fontSize: 12, color: '#6b7280' }}>
+                  ({server.location}{server.geoSource === 'auto' ? ' · خودکار' : ''})
+                </span>
               </div>
               <div style={{ fontSize: 13, color: '#a0a0b0', marginTop: 4, direction: 'ltr', textAlign: 'left' }}>{server.host}:{server.port} · {server.username} · {server.authType === 'key' ? 'کلید' : 'رمز'}</div>
               {server.status === 'online' && (

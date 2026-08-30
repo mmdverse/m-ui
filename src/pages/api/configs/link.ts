@@ -15,13 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const server = await Server.findById(config.serverId).lean() as any;
     if (!server) return res.status(404).json({ error: 'server not found' });
 
-    const link = generateLink(config as any, { host: server.host });
-    if (!link) {
-      return res.status(400).json({
-        error: `پروتکل ${config.protocol} لینک قابل تولید ندارد (socks5 یا wireguard نیاز به کلید واقعی دارد)`,
-      });
+    const result = generateLink(config as any, { host: server.host });
+    if ('error' in result) {
+      return res.status(400).json({ error: result.error });
     }
-    res.json({ link, protocol: config.protocol });
+    res.json({ link: result.link, protocol: config.protocol });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

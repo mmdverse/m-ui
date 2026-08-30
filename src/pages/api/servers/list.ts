@@ -3,7 +3,7 @@ import { connectDB, Server } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 
 const SAFE_FIELDS =
-  'name host port username authType location status isTunnel cpuUsage ramUsage load1 uptimeSec rxBytes txBytes lastPing lastError createdAt';
+  'name host port username authType location geoSource status isTunnel cpuUsage ramUsage load1 uptimeSec rxBytes txBytes lastPing lastError createdAt';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const payload = requireAuth(req, res);

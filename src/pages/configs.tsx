@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 
 const protocols = ['vmess', 'vless', 'trojan', 'shadowsocks', 'socks5', 'wireguard'];
 const transports = ['tcp', 'kcp', 'ws', 'http', 'quic', 'grpc'];
-const emptyForm = { name: '', serverId: '', protocol: 'vmess', port: 443, transport: 'ws', security: 'tls', domain: '', path: '/', sni: '' };
+const emptyForm = { name: '', serverId: '', protocol: 'vmess', port: 443, transport: 'ws', security: 'tls', domain: '', path: '/', sni: '', pbk: '', fp: 'chrome', sid: '' };
 
 export default function ConfigsPage() {
   const [configs, setConfigs] = useState<any[]>([]);
@@ -89,6 +89,15 @@ export default function ConfigsPage() {
             )}
             <input placeholder="Path (فقط WebSocket)" value={form.path} onChange={(e) => setForm({ ...form, path: e.target.value })} style={s} />
             <input placeholder="دامنه CDN" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} style={s} />
+            {form.security === 'reality' && (
+              <>
+                <input placeholder="کلید عمومی REALITY (pbk)" value={form.pbk} onChange={(e) => setForm({ ...form, pbk: e.target.value })} style={{ ...s, gridColumn: '1 / 3', direction: 'ltr' }} />
+                <select value={form.fp} onChange={(e) => setForm({ ...form, fp: e.target.value })} style={s}>
+                  {['chrome', 'firefox', 'edge', 'safari', 'ios', 'android', '360', 'qq'].map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
+                <input placeholder="Short ID (اختیاری)" value={form.sid} onChange={(e) => setForm({ ...form, sid: e.target.value })} style={{ ...s, direction: 'ltr' }} />
+              </>
+            )}
           </div>
           <button onClick={addConfig} style={{ ...btnStyle, marginTop: 12 }}>💾 ایجاد کانفیگ</button>
         </div>
@@ -111,6 +120,7 @@ export default function ConfigsPage() {
                     {srv?.host}:{cfg.port} | {cfg.transport} | {cfg.security}
                     {cfg.sni && ` | SNI: ${cfg.sni}`}
                     {cfg.path && ` | Path: ${cfg.path}`}
+                    {cfg.security === 'reality' && ` | pbk: ${(cfg.pbk || '').slice(0, 14)}… | fp: ${cfg.fp}`}
                   </div>
                   <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, direction: 'ltr', textAlign: 'left' }}>UUID: {cfg.uuid}</div>
                 </div>
