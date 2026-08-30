@@ -1,14 +1,47 @@
-/** Client-side fetch helper: attaches the stored JWT and unwraps errors. */
+/**
+ * Client-side fetch helper: attaches the stored JWT and unwraps errors.
+ * Token storage is resilient: localStorage when available (normal browsers),
+ * otherwise an in-memory fallback (e.g. sandboxed preview frames where
+ * localStorage access throws).
+ */
+
+const KEY = 'mui_token';
+let memoryToken: string | null = null;
+
+function storage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null; // sandboxed iframe without allow-same-origin
+  }
+}
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem('mui_token');
+  const s = storage();
+  if (s) {
+    try {
+      const v = s.getItem(KEY);
+      if (v) return v;
+    } catch {
+      /* fall through to memory */
+    }
+  }
+  return memoryToken;
 }
 
 export function setToken(token: string | null) {
   if (typeof window === 'undefined') return;
-  if (token) window.localStorage.setItem('mui_token', token);
-  else window.localStorage.removeItem('mui_token');
+  memoryToken = token;
+  const s = storage();
+  if (s) {
+    try {
+      if (token) s.setItem(KEY, token);
+      else s.removeItem(KEY);
+    } catch {
+      /* memory only */
+    }
+  }
 }
 
 export async function api<T = any>(url: string, options: RequestInit = {}): Promise<T> {
@@ -18,7 +51,12 @@ export async function api<T = any>(url: string, options: RequestInit = {}): Prom
     ...(options.headers as Record<string, string>),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(url, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(url, { ...options, headers });
+  } catch {
+    throw new Error('network'); // server unreachable — NOT an auth problem
+  }
   const data = await res.json().catch(() => ({}));
   if (res.status === 401) {
     setToken(null);

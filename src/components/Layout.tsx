@@ -16,6 +16,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [connError, setConnError] = useState('');
 
   useEffect(() => {
     if (!getToken()) {
@@ -24,7 +25,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
     api('/api/auth/me')
       .then((data) => setUser(data.user))
-      .catch(() => router.replace('/'));
+      .catch((e) => {
+        // only an invalid token means "back to login"; a server outage is not
+        if (e.message === 'unauthorized') router.replace('/');
+        else setConnError('اتصال به سرور برقرار نشد — کمی صبر کنید یا صفحه را رفرش کنید');
+      });
   }, [router]);
 
   function logout() {
@@ -78,7 +83,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main */}
-      <main style={{ flex: 1, padding: 24, overflow: 'auto' }}>{children}</main>
+      <main style={{ flex: 1, padding: 24, overflow: 'auto' }}>
+        {connError && (
+          <div style={{ background: '#3a1d1d', border: '1px solid #7f1d1d', color: '#fca5a5', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
+            ⚠️ {connError}
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }
