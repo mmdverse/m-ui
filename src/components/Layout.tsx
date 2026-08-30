@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { api, getToken, setToken } from '@/lib/api';
 
 const menuItems = [
   { icon: '📊', label: 'داشبورد', path: '/dashboard' },
@@ -14,6 +15,22 @@ const menuItems = [
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    if (!getToken()) {
+      router.replace('/');
+      return;
+    }
+    api('/api/auth/me')
+      .then((data) => setUser(data.user))
+      .catch(() => router.replace('/'));
+  }, [router]);
+
+  function logout() {
+    setToken(null);
+    router.replace('/');
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -24,8 +41,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {!collapsed && <span style={{ fontSize: 18, fontWeight: 700, color: '#03a66d', marginRight: 8 }}>M-UI</span>}
         </div>
         <nav style={{ flex: 1, padding: 8 }}>
-          {menuItems.map(item => (
-            <div key={item.path} onClick={() => router.push(item.path)}
+          {menuItems.map((item) => (
+            <div
+              key={item.path}
+              onClick={() => router.push(item.path)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
                 borderRadius: 8, cursor: 'pointer', marginBottom: 2,
@@ -33,8 +52,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 color: router.pathname === item.path ? '#03a66d' : '#a0a0b0',
                 fontSize: 14, transition: 'all 0.2s',
               }}
-              onMouseEnter={e => { if (router.pathname !== item.path) (e.target as any).style.background = '#313244'; }}
-              onMouseLeave={e => { if (router.pathname !== item.path) (e.target as any).style.background = 'transparent'; }}
+              onMouseEnter={(e) => { if (router.pathname !== item.path) (e.target as any).style.background = '#313244'; }}
+              onMouseLeave={(e) => { if (router.pathname !== item.path) (e.target as any).style.background = 'transparent'; }}
             >
               <span>{item.icon}</span>
               {!collapsed && <span>{item.label}</span>}
@@ -42,7 +61,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <div style={{ padding: '12px', borderTop: '1px solid #313244', textAlign: 'center', fontSize: 12, color: '#6b7280' }}>
-          {!collapsed && <>v1.0 | <a href="https://t.me/llllxyz" style={{ color: '#03a66d', textDecoration: 'none' }}>@llllxyz</a></>}
+          {!collapsed && (
+            <>
+              {user ? user.username : '...'} ·{' '}
+              <a
+                style={{ color: '#03a66d', textDecoration: 'none', cursor: 'pointer' }}
+                onClick={logout}
+              >
+                خروج
+              </a>
+              <br />
+              <a href="https://t.me/llllxyz" style={{ color: '#03a66d', textDecoration: 'none' }}>@llllxyz</a>
+            </>
+          )}
         </div>
       </aside>
 

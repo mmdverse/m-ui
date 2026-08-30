@@ -1,19 +1,23 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import jwt from 'jsonwebtoken';
-import { config } from '@/lib/config';
+import bcrypt from 'bcryptjs';
+import { connectDB, User } from '@/lib/db';
+import { signToken, seedAdmin } from '@/lib/auth';
 
-const ADMIN_USER = {
-  username: process.env.ADMIN_USERNAME || 'admin',
-  password: process.env.ADMIN_PASSWORD || 'admin123',
-  role: 'admin',
-};
-
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const { username, password } = req.body;
-  if (username === ADMIN_USER.username && password === ADMIN_USER.password) {
-    const token = jwt.sign({ username, role: 'admin' }, config.jwt.secret, { expiresIn: '7d' });
-    return res.json({ token, user: { username, role: 'admin' } });
+  try {
+    await connectDB();
+    await seedAdmin();
+    const { username, password } = req.body || {};
+    if (!username || !password) return res.status(400).json({ error: 'username and password required' });
+
+    const user = await User.findOne({ username: String(username), isActive: true }).lean() as any;
+    if (!user || !bcrypt.compareSync(String(password), user.passwordHash)) {
+      return res.status(401).json({ error: 'نام کاربری یا رمز عبور اشتباه' });
+    }
+    const token = signToken({ username: user.username, role: user.role });
+    res.json({ token, user: { username: user.username, role: user.role } });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
-  res.status(401).json({ error: 'نام کاربری یا رمز عبور اشتباه' });
 }

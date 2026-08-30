@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { setToken } from '@/lib/api';
 
 export default function Login() {
   const router = useRouter();
   const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -21,12 +22,14 @@ export default function Login() {
       });
       const data = await res.json();
       if (data.token) {
-        localStorage.setItem('token', data.token);
+        setToken(data.token);
         router.push('/dashboard');
       } else {
         setError(data.error || 'نام کاربری یا رمز اشتباه');
       }
-    } catch { setError('خطا در ارتباط'); }
+    } catch {
+      setError('خطا در ارتباط');
+    }
     setLoading(false);
   }
 
@@ -40,10 +43,8 @@ export default function Login() {
           <p style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>پنل مدیریت VPN</p>
         </div>
         <form onSubmit={handleLogin}>
-          <input value={username} onChange={e => setUsername(e.target.value)} placeholder="نام کاربری"
-            style={inputStyle} />
-          <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="رمز عبور"
-            style={inputStyle} />
+          <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="نام کاربری" style={inputStyle} />
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="رمز عبور" style={inputStyle} />
           {error && <p style={{ color: '#ef4444', fontSize: 13, margin: '0 0 12px' }}>{error}</p>}
           <button type="submit" disabled={loading} style={{
             background: '#03a66d', color: 'white', border: 'none', width: '100%',

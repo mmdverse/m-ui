@@ -5,7 +5,11 @@ services:
     ports: ["3000:3000"]
     environment:
       - MONGODB_URI=mongodb://mongo:27017/mui
-      - JWT_SECRET=change-this-in-production
+      # required — the app refuses to start in production without it
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      # only used to seed the first admin (no users yet); min 8 chars
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
     depends_on: [mongo]
     restart: unless-stopped
   mongo:
