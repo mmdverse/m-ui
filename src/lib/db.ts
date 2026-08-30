@@ -48,6 +48,17 @@ const ConfigSchema = new mongoose.Schema({
   pbk: { type: String, default: '' }, // REALITY public key
   fp: { type: String, default: 'chrome' }, // REALITY fingerprint
   sid: { type: String, default: '' }, // REALITY shortId
+  // SOCKS5 deployment (protocol = 'socks5')
+  deployed: { type: Boolean, default: false },
+  deployError: { type: String, default: '' },
+  socksUser: { type: String, default: '' },
+  socksPass: { type: String, default: '' },
+  // WireGuard client config (protocol = 'wireguard')
+  wgClientPriv: { type: String, default: '' },
+  wgClientPub: { type: String, default: '' },
+  wgServerPub: { type: String, default: '' },
+  wgAddress: { type: String, default: '10.0.0.2/32' },
+  wgDns: { type: String, default: '1.1.1.1' },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
 });

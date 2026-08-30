@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
+import nacl from 'tweetnacl';
 import { connectDB, Config } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { recordActivity } from '@/lib/activity';
@@ -14,9 +15,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
     await connectDB();
-    const { name, serverId, protocol, port, transport, security, domain, path, sni, pbk, fp, sid } = req.body || {};
+    const {
+      name, serverId, protocol, port, transport, security, domain, path, sni,
+      pbk, fp, sid, wgServerPub, wgAddress, wgDns,
+    } = req.body || {};
     if (!name || !serverId || !port) return res.status(400).json({ error: 'name, serverId and port are required' });
     if (!PROTOCOLS.includes(protocol)) return res.status(400).json({ error: 'invalid protocol' });
+
+    // WireGuard needs a client keypair — generated once here, persisted.
+    let wgClientPriv = '';
+    let wgClientPub = '';
+    if (protocol === 'wireguard') {
+      const pair = nacl.box.keyPair();
+      wgClientPriv = Buffer.from(pair.secretKey).toString('base64');
+      wgClientPub = Buffer.from(pair.publicKey).toString('base64');
+    }
 
     const config = await Config.create({
       name: String(name),
@@ -33,6 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       pbk: pbk || '',
       fp: ['chrome', 'firefox', 'edge', 'safari', 'ios', 'android', '360', 'qq'].includes(fp) ? fp : 'chrome',
       sid: sid || '',
+      wgClientPriv,
+      wgClientPub,
+      wgServerPub: wgServerPub || '',
+      wgAddress: wgAddress || '10.0.0.2/32',
+      wgDns: wgDns || '1.1.1.1',
       isActive: true,
     });
     await recordActivity(`کانفیگ «${config.name}» ایجاد شد`, 'info', payload.username);

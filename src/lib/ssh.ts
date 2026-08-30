@@ -47,6 +47,73 @@ export function statsFromOutput(output: string, cpus: number): Partial<StatsResu
   };
 }
 
+/** Connects to the server over SSH, runs an arbitrary command, returns its output. */
+export function runCommand(
+  server: ServerCredentials,
+  command: string,
+  timeoutMs = 30_000
+): Promise<{ code: number | null; stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const client = new Client();
+    let settled = false;
+    const done = (result: any) => {
+      if (settled) return;
+      settled = true;
+      try {
+        client.end();
+      } catch {
+        /* ignore */
+      }
+      resolve(result);
+    };
+
+    const timer = setTimeout(() => done({ code: null, stdout: '', stderr: 'command timed out' }), timeoutMs);
+
+    client.on('ready', () => {
+      client.exec(command, (err, stream) => {
+        if (err) {
+          clearTimeout(timer);
+          return done({ code: null, stdout: '', stderr: err.message });
+        }
+        let stdout = '';
+        let stderr = '';
+        stream.on('data', (chunk: Buffer) => (stdout += chunk.toString()));
+        stream.stderr.on('data', (chunk: Buffer) => (stderr += chunk.toString()));
+        stream.on('close', (code: number | null) => {
+          clearTimeout(timer);
+          done({ code, stdout, stderr });
+        });
+        stream.on('error', (e: Error) => {
+          clearTimeout(timer);
+          done({ code: null, stdout, stderr: e.message });
+        });
+      });
+    });
+    client.on('error', (e: Error) => {
+      clearTimeout(timer);
+      done({ code: null, stdout: '', stderr: e.message });
+    });
+    client.on('timeout', () => {
+      clearTimeout(timer);
+      done({ code: null, stdout: '', stderr: 'connection timed out' });
+    });
+
+    const config: any = {
+      host: server.host,
+      port: server.port,
+      username: server.username,
+      readyTimeout: CONNECT_TIMEOUT,
+    };
+    if (server.authType === 'key' && server.sshKey) {
+      // same normalization as tunnel.ts — some clients are picky about EOL
+      config.privateKey = server.sshKey.endsWith('\n') ? server.sshKey : server.sshKey + '\n';
+    } else {
+      config.password = server.password;
+    }
+    client.connect(config);
+  });
+}
+
 /** Connects to the server over SSH, reads system metrics, returns them (or an error). */
 export function testAndCollect(server: ServerCredentials): Promise<StatsResult> {
   return new Promise((resolve) => {

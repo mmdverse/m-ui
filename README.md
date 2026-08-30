@@ -15,9 +15,10 @@
 | TLS / WebSocket / HTTP / gRPC / KCP / QUIC در لینک | ✅ کامل | به‌صورت پارامتر استاندارد در لینک درمی‌آید (به شرط پیکربندی همین ترنسپورت روی سرور) |
 | REALITY | ✅ کامل | فیلدهای pbk / fp / sid در فرم و در لینک‌های vless/vmess/trojan |
 | CDN (دامنه به‌جای IP) | ✅ کامل | فیلد دامنه CDN به‌عنوان host لینک |
+| SOCKS5 با مستقرسازی خودکار | ✅ کامل | دکمهٔ «فعال‌سازی روی سرور» microsocks را روی سرور نصب/اجرا می‌کند (apt/dnf/yum/apk)، کاربر/رمز اختصاصی می‌سازد و لینک `socks5://user:pass@host:port` می‌دهد |
+| WireGuard (کانفیگ کلاینت) | ✅ کامل | کلیدهای X25519 کلاینت با tweetnacl تولید و `.conf` معتبر خروجی می‌دهد (pub کلاینت نمایش داده می‌شود؛ پیکربندی peer روی سرور دستی است) |
 | تانل SSH Reverse | ✅ کامل | با کلاینت OpenSSH اجرا می‌شود (`ssh -N -R`)؛ شروع/توقف واقعی |
 | تانل Direct / FRP / WireGuard | 🧪 در دست اجرا | در دیتابیس ثبت می‌شوند ولی هنوز اجرا نمی‌شوند |
-| SOCKS5 / WireGuard (پروتکل کانفیگ) | 🧪 در دست اجرا | ثبت می‌شوند اما لینک اشتراک قابل تولید ندارند (نیازمند کلید/پروکسی واقعی) |
 | داشبورد، لاگ فعالیت، کاربران و نقش‌ها | ✅ کامل | همه از داده واقعی؛ رمزها bcrypt و همه APIها پشت JWT |
 | Docker | ✅ کامل | `docker compose` از سورس (ایمیج عمومی هنوز منتشر نشده) |
 
@@ -58,7 +59,7 @@ JWT_SECRET=... ADMIN_PASSWORD=... docker compose up -d
 | GET/POST/DELETE | `/api/auth/users` | لیست / ایجاد / حذف کاربر (فقط admin) |
 | POST | `/api/auth/change-password` | تغییر رمز خود کاربر |
 | GET/POST | `/api/servers/list` · `/api/servers/add` · `/api/servers/test` · `/api/servers/delete` | سرورها |
-| GET/POST | `/api/configs/list` · `/api/configs/add` · `/api/configs/link` · `/api/configs/delete` | کانفیگ‌ها و لینک اشتراک |
+| GET/POST | `/api/configs/list` · `/api/configs/add` · `/api/configs/link` · `/api/configs/delete` · `/api/configs/deploy` | کانفیگ‌ها، لینک اشتراک و استقرار پروکسی SOCKS5 |
 | GET/POST | `/api/tunnels/list` · `/api/tunnels/add` · `/api/tunnels/start` · `/api/tunnels/stop` · `/api/tunnels/delete` | تانل‌ها |
 | GET | `/api/system/stats` · `/api/system/activity` | آمار داشبورد و رویدادها |
 
@@ -71,8 +72,10 @@ JWT_SECRET=... ADMIN_PASSWORD=... docker compose up -d
 
 ## محدودیت‌ها
 
+- لینک SOCKS5 از host خودِ سرور ساخته می‌شود (فیلد دامنه CDN برای آن استفاده نمی‌شود)
 - وضعیت تانل‌ها در حافظهٔ پروسه پنل است؛ بعد از ری‌استارت باید از UI دوباره شروع شوند
 - تانل با رمز عبور SSH به `sshpass` روی سرور پنل نیاز دارد (با کلید SSH لازم نیست)
+- استقرار SOCKS5 به مخازن سیستم‌عامل سرور (apt/dnf/yum/apk) و دسترسی sudo نیاز دارد
 - پنل تک‌اینستنس است
 
 ## استک

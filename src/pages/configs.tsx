@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 
 const protocols = ['vmess', 'vless', 'trojan', 'shadowsocks', 'socks5', 'wireguard'];
 const transports = ['tcp', 'kcp', 'ws', 'http', 'quic', 'grpc'];
-const emptyForm = { name: '', serverId: '', protocol: 'vmess', port: 443, transport: 'ws', security: 'tls', domain: '', path: '/', sni: '', pbk: '', fp: 'chrome', sid: '' };
+const emptyForm = { name: '', serverId: '', protocol: 'vmess', port: 443, transport: 'ws', security: 'tls', domain: '', path: '/', sni: '', pbk: '', fp: 'chrome', sid: '', wgServerPub: '', wgAddress: '10.0.0.2/32', wgDns: '1.1.1.1' };
 
 export default function ConfigsPage() {
   const [configs, setConfigs] = useState<any[]>([]);
@@ -54,6 +54,17 @@ export default function ConfigsPage() {
     }
   }
 
+  async function deployConfig(cfg: any) {
+    setMsg('');
+    try {
+      await api('/api/configs/deploy?id=' + cfg._id, { method: 'POST' });
+      setMsg('✅ پروکسی SOCKS5 روی سرور فعال شد — حالا لینک کپی کنید');
+      await load();
+    } catch (e: any) {
+      setMsg('❌ ' + e.message);
+    }
+  }
+
   return (
     <Layout>
       <Head><title>M-UI — کانفیگ‌ها</title></Head>
@@ -98,6 +109,19 @@ export default function ConfigsPage() {
                 <input placeholder="Short ID (اختیاری)" value={form.sid} onChange={(e) => setForm({ ...form, sid: e.target.value })} style={{ ...s, direction: 'ltr' }} />
               </>
             )}
+            {form.protocol === 'wireguard' && (
+              <>
+                <input placeholder="کلید عمومی سرور (wg pubkey)" value={form.wgServerPub} onChange={(e) => setForm({ ...form, wgServerPub: e.target.value })} style={{ ...s, gridColumn: '1 / 3', direction: 'ltr' }} />
+                <input placeholder="آدرس کلاینت (مثل 10.0.0.2/32)" value={form.wgAddress} onChange={(e) => setForm({ ...form, wgAddress: e.target.value })} style={s} />
+                <input placeholder="DNS (پیش‌فرض 1.1.1.1)" value={form.wgDns} onChange={(e) => setForm({ ...form, wgDns: e.target.value })} style={s} />
+              </>
+            )}
+            {form.protocol === 'socks5' && (
+              <p style={{ fontSize: 12, color: '#6b7280', gridColumn: '1 / -1', margin: 0 }}>
+                بعد از ساخت، دکمهٔ «فعال‌سازی روی سرور» پنل microsocks را روی همین سرور نصب و روی پورت انتخابی اجرا می‌کند
+                (تست اتصال با TCP از سمت پنل انجام می‌شود).
+              </p>
+            )}
           </div>
           <button onClick={addConfig} style={{ ...btnStyle, marginTop: 12 }}>💾 ایجاد کانفیگ</button>
         </div>
@@ -122,10 +146,23 @@ export default function ConfigsPage() {
                     {cfg.path && ` | Path: ${cfg.path}`}
                     {cfg.security === 'reality' && ` | pbk: ${(cfg.pbk || '').slice(0, 14)}… | fp: ${cfg.fp}`}
                   </div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, direction: 'ltr', textAlign: 'left' }}>UUID: {cfg.uuid}</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, direction: 'ltr', textAlign: 'left' }}>
+                    {cfg.protocol === 'wireguard' && <>ClientPub: {cfg.wgClientPub}</>}
+                    {cfg.protocol === 'socks5' && (
+                      cfg.deployed
+                        ? <>✅ پروکسی روی سرور فعال · پورت {cfg.port}</>
+                        : <>⚠️ هنوز فعال نشده {cfg.deployError ? '· ' + cfg.deployError : ''}</>
+                    )}
+                    {!['socks5', 'wireguard'].includes(cfg.protocol) && <>UUID: {cfg.uuid}</>}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={() => copyLink(cfg)} style={{ ...btnStyle, background: '#7c3aed', padding: '6px 14px', fontSize: 12 }}>📋 کپی لینک</button>
+                  {cfg.protocol === 'socks5' && !cfg.deployed && (
+                    <button onClick={() => deployConfig(cfg)} style={{ ...btnStyle, background: '#f59e0b', padding: '6px 14px', fontSize: 12 }}>🚀 فعال‌سازی روی سرور</button>
+                  )}
+                  <button onClick={() => copyLink(cfg)} style={{ ...btnStyle, background: '#7c3aed', padding: '6px 14px', fontSize: 12 }}>
+                    {cfg.protocol === 'wireguard' ? '📋 کپی کانفیگ' : '📋 کپی لینک'}
+                  </button>
                   <button onClick={() => deleteConfig(cfg._id)} style={{ ...btnStyle, background: '#ef4444', padding: '6px 14px', fontSize: 12 }}>🗑</button>
                 </div>
               </div>
