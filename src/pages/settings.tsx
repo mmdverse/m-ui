@@ -1,80 +1,100 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '@/components/Layout';
-import { api } from '@/lib/api';
+import { api, apiErrorText } from '@/lib/api';
+import { useI18n } from '@/i18n';
+import { PageHead, Msg, Field } from '@/components/ui';
 
 export default function SettingsPage() {
-  const [tab, setTab] = useState('security');
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const { t } = useI18n();
+  const [tab, setTab] = useState<'security' | 'about'>('security');
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [msg, setMsg] = useState('');
+  const [kind, setKind] = useState<'info' | 'ok' | 'err'>('info');
+  const [version, setVersion] = useState('');
+
+  useEffect(() => {
+    api('/api/system/version').then((d) => setVersion(d.version || '')).catch(() => {});
+  }, []);
 
   async function changePassword() {
-    setMsg(null);
+    setMsg('');
     try {
-      await api('/api/auth/change-password', {
-        method: 'POST',
-        body: JSON.stringify({ oldPassword, newPassword }),
-      });
-      setOldPassword('');
-      setNewPassword('');
-      setMsg({ text: '✅ رمز عبور تغییر کرد', ok: true });
+      await api('/api/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword: current, newPassword: next }) });
+      setCurrent('');
+      setNext('');
+      setMsg(t('set.passwordChanged'));
+      setKind('ok');
     } catch (e: any) {
-      setMsg({ text: '❌ ' + e.message, ok: false });
+      setMsg(apiErrorText(e, t));
+      setKind('err');
     }
   }
 
+  const security: [string, string][] = [
+    [t('set.s1k'), t('set.s1v')],
+    [t('set.s2k'), t('set.s2v')],
+    [t('set.s3k'), t('set.s3v')],
+    [t('set.s4k'), t('set.s4v')],
+    [t('set.s5k'), t('set.s5v')],
+    [t('set.s6k'), t('set.s6v')],
+  ];
+
   return (
     <Layout>
-      <Head><title>M-UI — تنظیمات</title></Head>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>⚙️ تنظیمات</h1>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {['security', 'about'].map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              padding: '10px 20px', borderRadius: 8, cursor: 'pointer',
-              background: tab === t ? '#03a66d' : '#1e1e2e', color: tab === t ? 'white' : '#a0a0b0',
-              border: tab === t ? 'none' : '1px solid #313244', fontSize: 13,
-            }}
-          >
-            {t === 'security' ? '🔒 امنیت' : 'ℹ️ درباره'}
-          </button>
-        ))}
-      </div>
-      <div style={{ background: '#1e1e2e', border: '1px solid #313244', borderRadius: 12, padding: 24 }}>
-        {tab === 'security' && (
-          <>
-            <h2 style={{ fontSize: 16, marginBottom: 16 }}>🔒 تغییر رمز عبور</h2>
-            <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 4 }}>رمز فعلی</label>
-            <input placeholder="رمز فعلی" type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} style={s} />
-            <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 4, marginTop: 12 }}>رمز جدید (حداقل ۸ کاراکتر)</label>
-            <input placeholder="رمز جدید" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={s} />
-            {msg && <p style={{ fontSize: 13, color: msg.ok ? '#22c55e' : '#ef4444' }}>{msg.text}</p>}
-            <button onClick={changePassword} style={{ ...btnStyle, marginTop: 16 }}>💾 تغییر رمز</button>
-            <div style={{ marginTop: 16, padding: 12, background: '#0d1117', borderRadius: 8, fontSize: 12, color: '#6b7280', lineHeight: 1.9 }}>
-              <p style={{ margin: 0 }}>🔐 JWT_SECRET باید در تنظیمات محیطی (Environment) ست شود؛ بدون آن در حالت production پنل اجرا نمی‌شود.</p>
-              <p style={{ margin: 0 }}>🔐 ادمین اولیه از ADMIN_USERNAME / ADMIN_PASSWORD ساخته می‌شود (فقط وقتی هنوز کاربری وجود ندارد).</p>
-            </div>
-          </>
-        )}
-        {tab === 'about' && (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>🐳</div>
-            <h2 style={{ fontSize: 20, color: '#03a66d' }}>M-UI</h2>
-            <p style={{ fontSize: 13, color: '#6b7280', marginTop: 8 }}>
-              پنل مدیریت VPN — پایش واقعی سرورها با SSH، ساخت کانفیگ با UUID دائمی، تانل SSH Reverse
-            </p>
-            <p style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
-              ساخته شده با ❤️ توسط{' '}
-              <a href="https://t.me/llllxyz" style={{ color: '#03a66d', textDecoration: 'none' }}>Mohammad</a>
-            </p>
+      <Head><title>{`M-UI — ${t('set.title')}`}</title></Head>
+      <PageHead eyebrow={t('set.eyebrow')} title={t('set.title')} sub={t('set.sub')}>
+        <button className={`btn btn-sm ${tab === 'security' ? '' : 'btn-ghost'}`} onClick={() => setTab('security')}>{t('set.tabSecurity')}</button>
+        <button className={`btn btn-sm ${tab === 'about' ? '' : 'btn-ghost'}`} onClick={() => setTab('about')}>{t('set.tabAbout')}</button>
+      </PageHead>
+
+      {msg && <Msg kind={kind}>{msg}</Msg>}
+
+      {tab === 'security' && (
+        <div className="split">
+          <div className="card">
+            <div className="section-title">{t('set.changePassword')}</div>
+            <Field label={t('set.currentPassword')}>
+              <input className="input ltr" type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+            </Field>
+            <div style={{ height: 14 }} />
+            <Field label={t('set.newPassword')}>
+              <input className="input ltr" type="password" value={next} onChange={(e) => setNext(e.target.value)} />
+            </Field>
+            <button className="btn btn-primary" style={{ marginTop: 18 }} onClick={changePassword}>{t('set.changeBtn')}</button>
           </div>
-        )}
-      </div>
+
+          <div className="card">
+            <div className="section-title">{t('set.statusTitle')}</div>
+            {security.map(([k, v]) => (
+              <div className="row" key={k} style={{ padding: '11px 0' }}>
+                <div>
+                  <div className="row-title" style={{ fontSize: 13 }}>{k}</div>
+                  <div className="row-meta">{v}</div>
+                </div>
+                <span className="dot dot-on" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === 'about' && (
+        <div className="card">
+          <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>{t('set.aboutText')}</p>
+          <div className="divider" />
+          <div className="kv" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 10 }}>
+            <span>{t('set.versionPanel')} <b className="mono">{version || '—'}</b></span>
+            <span>{t('set.versionNext')} <b className="mono">14.2.x</b></span>
+            <span>{t('set.versionXray')} <b className="mono">26.3.27</b></span>
+          </div>
+          <div className="divider" />
+          <div style={{ fontSize: 12, color: 'var(--fg-mute)' }}>
+            {t('app.creditBy')} <a className="link-quiet" href="https://t.me/llllxyz" target="_blank" rel="noreferrer">Mohammad</a>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
-const s: any = { background: '#11111b', border: '1px solid #313244', borderRadius: 8, padding: '8px 12px', color: '#e0e0e0', fontSize: 13, width: '100%', display: 'block', boxSizing: 'border-box' };
-const btnStyle: any = { background: '#03a66d', color: 'white', border: 'none', padding: '8px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 };

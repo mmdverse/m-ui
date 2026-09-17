@@ -1,20 +1,37 @@
-version: "3.9"
 services:
   app:
     build: .
     ports: ["3000:3000"]
     environment:
-      - MONGODB_URI=mongodb://mongo:27017/mui
+      - MONGODB_URI=mongodb://${MONGO_USER:-mui}:${MONGO_PASS:?MONGO_PASS is required}@mongo:27017/mui?authSource=admin
       # required — the app refuses to start in production without it
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      # optional: set this to keep credential encryption independent of the JWT
+      # secret, so rotating one does not invalidate the other
+      - M_UI_ENCRYPTION_KEY=${M_UI_ENCRYPTION_KEY:-}
       # only used to seed the first admin (no users yet); min 8 chars
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-    depends_on: [mongo]
+    depends_on:
+      mongo:
+        condition: service_healthy
     restart: unless-stopped
   mongo:
     image: mongo:7
-    ports: ["27017:27017"]
+    # No `ports:` on purpose. The app reaches mongo over the compose network, so
+    # publishing 27017 only exposed an unauthenticated database holding every
+    # server credential (audit P0-1). Uncomment the next line to bind it to
+    # loopback for a one-off `mongosh` session:
+    # ports: ["127.0.0.1:27017:27017"]
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-mui}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS:?MONGO_PASS is required}
     volumes: [mongo_data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
 volumes: { mongo_data: }

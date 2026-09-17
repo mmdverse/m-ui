@@ -21,18 +21,20 @@ export interface LinkServer {
   host: string;
 }
 
-export type LinkResult = { link: string } | { error: string };
+export type LinkResult = { link: string } | { error: string; code?: string; vars?: Record<string, string | number> };
 
 const FINGERPRINTS = ['chrome', 'firefox', 'edge', 'safari', 'ios', 'android', '360', 'qq'];
 const REALITY_FP = (fp?: string) => (fp && FINGERPRINTS.includes(fp) ? fp : 'chrome');
 
-/** Validates the parts a REALITY link needs; returns an error string or null. */
-function realityCheck(config: LinkConfig): string | null {
+/** Validates the parts a REALITY link needs; returns an error + code, or null. */
+function realityCheck(config: LinkConfig): { error: string; code: string } | null {
   if (!config.pbk || !config.pbk.trim()) {
-    return 'برای REALITY کلید عمومی (pbk) الزامی است';
+    return { error: 'برای REALITY کلید عمومی (pbk) الزامی است', code: 'api.realityPbkRequired' };
   }
   const sni = config.sni || config.domain;
-  if (!sni) return 'برای REALITY طول SNI یا دامنه الزامی است';
+  if (!sni) {
+    return { error: 'برای REALITY یک SNI یا دامنه لازم است', code: 'api.sniRequired' };
+  }
   return null;
 }
 
@@ -63,7 +65,7 @@ export function generateLink(config: LinkConfig, server: LinkServer): LinkResult
       if (security === 'tls' || security === 'reality') payload.sni = sni;
       if (security === 'reality') {
         const problem = realityCheck(config);
-        if (problem) return { error: problem };
+        if (problem) return problem;
         payload.tls = 'reality';
         payload.pbk = config.pbk;
         payload.fp = REALITY_FP(config.fp);
@@ -80,12 +82,12 @@ export function generateLink(config: LinkConfig, server: LinkServer): LinkResult
       });
       if (config.domain) params.set('host', config.domain);
       if (security === 'tls' || security === 'reality') {
-        if (!sni) return { error: 'برای TLS یا REALITY مقدار SNI یا دامنه الزامی است' };
+        if (!sni) return { error: 'برای TLS یا REALITY مقدار SNI یا دامنه الزامی است', code: 'api.sniRequired' };
         params.set('sni', sni);
       }
       if (security === 'reality') {
         const problem = realityCheck(config);
-        if (problem) return { error: problem };
+        if (problem) return problem;
         params.set('pbk', config.pbk);
         params.set('fp', REALITY_FP(config.fp));
         if (config.sid) params.set('sid', config.sid);
@@ -101,13 +103,13 @@ export function generateLink(config: LinkConfig, server: LinkServer): LinkResult
       if (config.domain) params.set('host', config.domain);
       if (security === 'reality') {
         const problem = realityCheck(config);
-        if (problem) return { error: problem };
+        if (problem) return problem;
         params.set('pbk', config.pbk);
         params.set('fp', REALITY_FP(config.fp));
         if (config.sid) params.set('sid', config.sid);
       }
       if (security === 'tls' || security === 'reality') {
-        if (!sni) return { error: 'برای TLS یا REALITY مقدار SNI یا دامنه الزامی است' };
+        if (!sni) return { error: 'برای TLS یا REALITY مقدار SNI یا دامنه الزامی است', code: 'api.sniRequired' };
         params.set('sni', sni);
       }
       const password = config.password || config.uuid;
@@ -121,6 +123,10 @@ export function generateLink(config: LinkConfig, server: LinkServer): LinkResult
     }
     // socks5 is a proxy, not a shareable link; wireguard needs real keys
     default:
-      return { error: `پروتکل ${config.protocol} لینک قابل تولید ندارد` };
+      return {
+        error: `پروتکل ${config.protocol} لینک قابل تولید ندارد`,
+        code: 'api.protocolNoLink',
+        vars: { protocol: config.protocol },
+      };
   }
 }

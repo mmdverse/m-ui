@@ -3,6 +3,10 @@ import crypto from 'crypto';
 import { connectDB, Config, Server } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { runCommand } from '@/lib/ssh';
+import { openConfig } from '@/lib/credentials';
+import { seal } from '@/lib/secrets';
+import { isObjectId, fail, apiError } from '@/lib/validate';
+import { isListening, isMicrosocksMissing } from '@/lib/deploycheck';
 import { recordActivity } from '@/lib/activity';
 
 /**
@@ -12,19 +16,21 @@ import { recordActivity } from '@/lib/activity';
  * detached; configs/deploy can be re-run to refresh credentials.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const payload = requireAuth(req, res);
+  const payload = requireAuth(req, res, 'admin');
   if (!payload) return;
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return apiError(res, 405, 'api.methodNotAllowed', 'Method not allowed');
   try {
     await connectDB();
     const { id } = req.query || req.body || {};
-    const config = await Config.findById(id).lean() as any;
-    if (!config) return res.status(404).json({ error: 'config not found' });
+    if (!isObjectId(id)) return apiError(res, 400, 'api.idInvalid', 'invalid id');
+    const config = openConfig(await Config.findById(id).lean() as any);
+    if (!config) return apiError(res, 404, 'api.configNotFound', 'config not found');
     if (config.protocol !== 'socks5') {
-      return res.status(400).json({ error: 'فقط برای کانفیگ SOCKS5 قابل استفاده است' });
+      return apiError(res, 400, 'api.socksOnly', 'فقط برای کانفیگ SOCKS5 قابل استفاده است');
     }
-    const server = await Server.findById(config.serverId).lean() as any;
-    if (!server) return res.status(404).json({ error: 'server not found' });
+    const { serverCredentials } = await import('@/lib/credentials');
+    const server = await serverCredentials(config.serverId);
+    if (!server) return apiError(res, 404, 'api.serverNotFound', 'server not found');
 
     const port = Number(config.port) || 1080;
 
@@ -46,11 +52,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ].join('\n');
 
     const install = await runCommand(server, installScript);
-    if (install.code !== 0 || install.stdout.trim() === 'MICROSOCKS_MISSING') {
+    if (install.code !== 0 || isMicrosocksMissing(install.stdout)) {
       const errMsg = 'نصب microsocks روی سرور ناموفق بود (بسته در مخازن سرور نیست یا دسترسی sudo ندارد)';
       await Config.updateOne({ _id: config._id }, { $set: { deployed: false, deployError: errMsg } });
-      await recordActivity(`نصب SOCKS5 روی «${server.name}» ناموفق بود`, 'error', payload.username);
-      return res.status(500).json({ error: errMsg, detail: (install.stderr || install.stdout).slice(0, 300) });
+      await recordActivity(`نصب SOCKS5 روی «${server.name}» ناموفق بود`, 'error', payload.username, 'act.socksInstallFailed', { name: server.name });
+      return res.status(500).json({
+        error: errMsg,
+        code: 'api.deployFailed',
+        detail: (install.stderr || install.stdout).slice(0, 300),
+      });
     }
 
     // (re)start the proxy on the configured port with the credentials
@@ -62,28 +72,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'if [ -f "$PIDFILE" ]; then $SUDO kill "$(cat "$PIDFILE")" 2>/dev/null || true; rm -f "$PIDFILE"; fi',
       `$SUDO sh -c 'setsid nohup microsocks -i 0.0.0.0 -p ${port} -u ${socksUser} -P ${socksPass} >>/var/log/microsocks.log 2>&1 < /dev/null & echo $! > /tmp/m-ui-socks-${port}.pid'`,
       'sleep 1',
-      `ss -tln 2>/dev/null | grep -q ":${port}" && echo "LISTENING" || echo "NOT_LISTENING"`,
+      // Two conditions, because "something is listening on the port" is not the
+      // same as "the proxy we started is alive": a stale or foreign listener on
+      // that port used to make a dead proxy look healthy.
+      'ALIVE=no',
+      'if [ -s "$PIDFILE" ] && $SUDO kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then ALIVE=yes; fi',
+      `if [ "$ALIVE" = yes ] && ss -tln 2>/dev/null | grep -qE ":${port}[[:space:]]"; then`,
+      '  echo "LISTENING"',
+      'else',
+      '  echo "NOT_LISTENING"',
+      'fi',
     ].join('\n');
 
     const start = await runCommand(server, startScript);
-    if (start.code !== 0 || !start.stdout.includes('LISTENING')) {
+    // Exact-line match: a substring check is fooled by "NOT_LISTENING", which
+    // contains "LISTENING" and would report a dead proxy as a success.
+    if (start.code !== 0 || !isListening(start.stdout)) {
       const errMsg = `پروکسی روی پورت ${port} بالا نیامد (پورت آزاد نیست یا مجوز bind ندارد)`;
       await Config.updateOne({ _id: config._id }, { $set: { deployed: false, deployError: errMsg } });
-      await recordActivity(`اجرای SOCKS5 روی «${server.name}» ناموفق بود`, 'error', payload.username);
-      return res.status(500).json({ error: errMsg, detail: (start.stderr || start.stdout).slice(0, 300) });
+      await recordActivity(`اجرای SOCKS5 روی «${server.name}» ناموفق بود`, 'error', payload.username, 'act.socksStartFailed', { name: server.name });
+      return res.status(500).json({
+        error: errMsg,
+        code: 'api.deployFailed',
+        detail: (start.stderr || start.stdout).slice(0, 300),
+      });
     }
 
     await Config.updateOne(
       { _id: config._id },
-      { $set: { deployed: true, deployError: '', socksUser, socksPass } }
+      // seal() explicitly: update paths must not depend on schema setters running
+      { $set: { deployed: true, deployError: '', socksUser, socksPass: seal(socksPass) } }
     );
     await recordActivity(
       `پروکسی SOCKS5 کانفیگ «${config.name}» روی ${server.host}:${port} فعال شد`,
       'success',
-      payload.username
+      payload.username,
+      'act.socksDeployed',
+      { name: config.name, host: server.host, port },
     );
     res.json({ success: true, host: server.host, port, user: socksUser, pass: socksPass });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    fail(res, err);
   }
 }

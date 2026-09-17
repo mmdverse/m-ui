@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB, Tunnel } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { tunnelRunning, lastExit } from '@/lib/tunnel';
+import { fail } from '@/lib/validate';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const payload = requireAuth(req, res);
@@ -26,6 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    fail(res, err);
   }
 }

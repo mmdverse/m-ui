@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
+import { PublicError } from './errors';
 
 export interface TunnelSpec {
   host: string;
@@ -46,7 +47,7 @@ function hasSshpass(): boolean {
  * from the UI. Returns the child pid.
  */
 export async function startTunnel(id: string, spec: TunnelSpec): Promise<number> {
-  if (registry.has(id)) throw new Error('tunnel already running');
+  if (registry.has(id)) throw new PublicError('تانل از قبل در حال اجراست', 409, 'api.tunnelAlreadyRunning');
 
   const args = [
     '-N',
@@ -78,7 +79,11 @@ export async function startTunnel(id: string, spec: TunnelSpec): Promise<number>
     const ok = hasSshpass();
     if (!ok) {
       if (keyFile) await fs.unlink(keyFile).catch(() => {});
-      throw new Error('password-based tunnels need sshpass installed, or switch the server to key auth');
+      throw new PublicError(
+        'تانل با احراز هویت رمزی به sshpass روی سرورِ پنل نیاز دارد؛ یا sshpass را نصب کنید یا سرور را به کلید SSH تغییر دهید',
+        501,
+        'api.sshpassMissing',
+      );
     }
     proc = spawn('sshpass', ['-p', spec.password, 'ssh', ...args, target]);
   } else {

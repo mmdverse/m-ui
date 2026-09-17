@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { seal } from './secrets';
 
 const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mui';
 
@@ -12,9 +13,11 @@ const ServerSchema = new mongoose.Schema({
   port: { type: Number, default: 22 },
   username: { type: String, default: 'root' },
   authType: { type: String, enum: ['password', 'key'], default: 'password' },
-  password: { type: String, default: '' },
-  sshKey: { type: String, default: '' }, // PEM private key (authType = 'key')
-  location: { type: String, default: 'ایران' },
+  // `set: seal` encrypts on write; readers go through lib/credentials.ts
+  password: { type: String, default: '', set: seal },
+  sshKey: { type: String, default: '', set: seal }, // PEM private key (authType = 'key')
+  // No locale-specific default in stored data — the UI fills unknown labels.
+  location: { type: String, default: '' },
   geoSource: { type: String, enum: ['auto', 'manual', 'none'], default: 'none' },
   status: { type: String, enum: ['online', 'offline', 'error', 'unknown'], default: 'unknown' },
   isTunnel: { type: Boolean, default: false },
@@ -44,7 +47,7 @@ const ConfigSchema = new mongoose.Schema({
   domain: { type: String },
   path: { type: String },
   sni: { type: String },
-  password: { type: String, default: '' }, // used by trojan/ss protocols
+  password: { type: String, default: '', set: seal }, // used by trojan/ss protocols
   pbk: { type: String, default: '' }, // REALITY public key
   fp: { type: String, default: 'chrome' }, // REALITY fingerprint
   sid: { type: String, default: '' }, // REALITY shortId
@@ -52,9 +55,9 @@ const ConfigSchema = new mongoose.Schema({
   deployed: { type: Boolean, default: false },
   deployError: { type: String, default: '' },
   socksUser: { type: String, default: '' },
-  socksPass: { type: String, default: '' },
+  socksPass: { type: String, default: '', set: seal },
   // WireGuard client config (protocol = 'wireguard')
-  wgClientPriv: { type: String, default: '' },
+  wgClientPriv: { type: String, default: '', set: seal },
   wgClientPub: { type: String, default: '' },
   wgServerPub: { type: String, default: '' },
   wgAddress: { type: String, default: '10.0.0.2/32' },
@@ -101,14 +104,25 @@ const UsageSampleSchema = new mongoose.Schema(
   { collection: 'usage_samples' }
 );
 UsageSampleSchema.index({ serverId: 1, ts: -1 });
+// Retention: one sample per server per monitor tick is ~144/day/server with the
+// default interval — unbounded growth with nothing reading rows older than the
+// dashboard's 7-day window (audit P2-9). 90 days keeps a useful history and caps
+// the collection; MongoDB drops expired documents on its own.
+UsageSampleSchema.index({ ts: 1 }, { expireAfterSeconds: 90 * 24 * 3600 });
 
 const ActivitySchema = new mongoose.Schema({
   ts: { type: Date, default: Date.now },
   actor: { type: String, default: 'system' },
   event: { type: String, required: true },
   type: { type: String, enum: ['info', 'success', 'error'], default: 'info' },
+  // Stable code + values so the UI can render the row in the user's language;
+  // rows written before this existed have no code and fall back to `event`.
+  code: { type: String, default: '' },
+  vars: { type: mongoose.Schema.Types.Mixed, default: null },
 });
 ActivitySchema.index({ ts: -1 });
+// Same reasoning as usage samples: the log is read through a 50-row window.
+ActivitySchema.index({ ts: 1 }, { expireAfterSeconds: 180 * 24 * 3600 });
 
 export const Server: mongoose.Model<any> =
   (mongoose.models.Server as mongoose.Model<any>) || mongoose.model('Server', ServerSchema);

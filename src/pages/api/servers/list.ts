@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB, Server } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
+import { fail } from '@/lib/validate';
 
 const SAFE_FIELDS =
   'name host port username authType location geoSource status isTunnel cpuUsage ramUsage load1 uptimeSec rxBytes txBytes lastPing lastError createdAt';
@@ -16,6 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .lean() as any;
     res.json(servers);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    fail(res, err);
   }
 }

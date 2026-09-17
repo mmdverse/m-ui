@@ -19,7 +19,8 @@ export async function detectLocation(
     if (data.status !== 'success') return null;
     const parts = [data.city, data.regionName, data.country].filter(Boolean);
     if (!parts.length) return null;
-    return { location: [...new Set(parts)].join('، '), source: 'auto' };
+    // Neutral separator: this string is stored and shown in every language.
+    return { location: [...new Set(parts)].join(', '), source: 'auto' };
   } catch {
     return null;
   }

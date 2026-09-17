@@ -1,25 +1,34 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '@/components/Layout';
-import { api } from '@/lib/api';
+import { api, apiErrorText } from '@/lib/api';
+import { useI18n } from '@/i18n';
+import { PageHead, Msg, Empty, Field, StatusDot } from '@/components/ui';
 
 const emptyForm = { name: '', type: 'ssh', localServer: '', remoteServer: '', localPort: 443, remotePort: 8443 };
 
 export default function TunnelsPage() {
+  const { t, fmtDate } = useI18n();
   const [tunnels, setTunnels] = useState<any[]>([]);
   const [servers, setServers] = useState<any[]>([]);
   const [form, setForm] = useState<any>(emptyForm);
   const [busy, setBusy] = useState('');
   const [msg, setMsg] = useState('');
+  const [kind, setKind] = useState<'info' | 'ok' | 'err'>('info');
+
+  function flash(text: string, k: 'info' | 'ok' | 'err' = 'info') {
+    setMsg(text);
+    setKind(k);
+  }
 
   async function load() {
-    const [t, sv] = await Promise.all([api('/api/tunnels/list'), api('/api/servers/list')]);
-    setTunnels(t);
+    const [tu, sv] = await Promise.all([api('/api/tunnels/list'), api('/api/servers/list')]);
+    setTunnels(tu);
     setServers(sv);
   }
   useEffect(() => {
     load().catch(() => {});
-    const timer = setInterval(() => load().catch(() => {}), 15000); // reflect real process state
+    const timer = setInterval(() => load().catch(() => {}), 15000); // وضعیت واقعی فرایند
     return () => clearInterval(timer);
   }, []);
 
@@ -29,8 +38,9 @@ export default function TunnelsPage() {
       await api('/api/tunnels/add', { method: 'POST', body: JSON.stringify(form) });
       setForm(emptyForm);
       await load();
+      flash(t('tun.created'), 'ok');
     } catch (e: any) {
-      setMsg(e.message);
+      flash(apiErrorText(e, t), 'err');
     }
   }
 
@@ -39,9 +49,9 @@ export default function TunnelsPage() {
     setMsg('');
     try {
       const data = await api('/api/tunnels/start?id=' + id, { method: 'POST' });
-      setMsg('✅ تانل فعال شد (pid ' + data.pid + ')');
+      flash(t('tun.started', { pid: data.pid }), 'ok');
     } catch (e: any) {
-      setMsg('❌ ' + e.message);
+      flash(apiErrorText(e, t), 'err');
     }
     setBusy('');
     await load();
@@ -51,112 +61,124 @@ export default function TunnelsPage() {
     setBusy(id);
     try {
       await api('/api/tunnels/stop?id=' + id, { method: 'POST' });
-      setMsg('⏹ تانل متوقف شد');
+      flash(t('tun.stopped'), 'ok');
     } catch (e: any) {
-      setMsg(e.message);
+      flash(apiErrorText(e, t), 'err');
     }
     setBusy('');
     await load();
   }
 
   async function deleteTunnel(id: string) {
-    if (!confirm('تانل حذف شود؟')) return;
+    if (!confirm(t('c.confirmTunnel'))) return;
     try {
       await api('/api/tunnels/delete?id=' + id, { method: 'DELETE' });
       await load();
     } catch (e: any) {
-      setMsg(e.message);
+      flash(apiErrorText(e, t), 'err');
     }
   }
 
-  const typeLabel: any = { ssh: '🔄 SSH Reverse', direct: 'Direct', frp: 'FRP', wireguard: 'WireGuard' };
-
   return (
     <Layout>
-      <Head><title>M-UI — تانل‌ها</title></Head>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>🔀 تانلینگ</h1>
-        <button onClick={addTunnel} style={btnStyle}>➕ تانل جدید</button>
-      </div>
-      {msg && <p style={{ color: msg.startsWith('✅') || msg.startsWith('❌') ? (msg.startsWith('✅') ? '#22c55e' : '#ef4444') : '#f59e0b', fontSize: 13 }}>{msg}</p>}
+      <Head><title>{`M-UI — ${t('tun.title')}`}</title></Head>
+      <PageHead eyebrow={t('tun.eyebrow')} title={t('tun.title')} sub={t('tun.sub')} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginBottom: 24 }}>
-        <div style={{ background: '#1e1e2e', border: '1px solid #313244', borderRadius: 12, padding: 16 }}>
-          <h3 style={{ fontSize: 14, color: '#7c3aed', marginBottom: 8 }}>🔄 SSH Reverse</h3>
-          <p style={{ fontSize: 12, color: '#6b7280' }}>
-            پیاده‌سازی‌شده: با OpenSSH روی سرور پنل اجرا می‌شود و پورتِ سرور خارج را به سرویس محلی فوروارد می‌کند.
-            برای رمز عبور به بسته sshpass نیاز دارد؛ با کلید SSH بدون آن کار می‌کند.
-          </p>
+      {msg && <Msg kind={kind}>{msg}</Msg>}
+
+      <div className="grid cols-3" style={{ marginBottom: 22 }}>
+        <div className="card tight">
+          <div className="row-title" style={{ fontSize: 13 }}>{t('tun.sshTitle')}</div>
+          <p className="muted" style={{ fontSize: 12, margin: '8px 0 0' }}>{t('tun.sshDesc')}</p>
         </div>
-        <div style={{ background: '#1e1e2e', border: '1px solid #313244', borderRadius: 12, padding: 16 }}>
-          <h3 style={{ fontSize: 14, color: '#03a66d', marginBottom: 8 }}>Direct</h3>
-          <p style={{ fontSize: 12, color: '#6b7280' }}>ثبت می‌شود ولی فعلاً اجرا نمی‌شود (هنوز پیاده‌سازی نشده).</p>
+        <div className="card tight">
+          <div className="row-title" style={{ fontSize: 13 }}>{t('tun.directTitle')}</div>
+          <p className="muted" style={{ fontSize: 12, margin: '8px 0 0' }}>{t('tun.directDesc')}</p>
         </div>
-        <div style={{ background: '#1e1e2e', border: '1px solid #313244', borderRadius: 12, padding: 16 }}>
-          <h3 style={{ fontSize: 14, color: '#3b82f6', marginBottom: 8 }}>FRP / WireGuard</h3>
-          <p style={{ fontSize: 12, color: '#6b7280' }}>ثبت می‌شود ولی فعلاً اجرا نمی‌شود (هنوز پیاده‌سازی نشده).</p>
+        <div className="card tight">
+          <div className="row-title" style={{ fontSize: 13 }}>{t('tun.otherTitle')}</div>
+          <p className="muted" style={{ fontSize: 12, margin: '8px 0 0' }}>{t('tun.otherDesc')}</p>
         </div>
       </div>
 
-      <div style={{ background: '#1e1e2e', border: '1px solid #313244', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <h2 style={{ fontSize: 16, marginBottom: 12 }}>➕ تانل جدید</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-          <input placeholder="نام تانل" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={s} />
-          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} style={s}>
-            <option value="ssh">SSH Reverse (اجرا می‌شود)</option>
-            <option value="direct">Direct (فقط ثبت)</option>
-            <option value="frp">FRP (فقط ثبت)</option>
-            <option value="wireguard">WireGuard (فقط ثبت)</option>
-          </select>
-          <select value={form.localServer} onChange={(e) => setForm({ ...form, localServer: e.target.value })} style={s}>
-            <option value="">سرور مبدأ (محلی)</option>
-            {servers.map((sv: any) => <option key={sv._id} value={sv._id}>{sv.name}</option>)}
-          </select>
-          <select value={form.remoteServer} onChange={(e) => setForm({ ...form, remoteServer: e.target.value })} style={s}>
-            <option value="">سرور مقصد (خارج)</option>
-            {servers.map((sv: any) => <option key={sv._id} value={sv._id}>{sv.name}</option>)}
-          </select>
-          <input placeholder="پورت محلی" type="number" value={form.localPort} onChange={(e) => setForm({ ...form, localPort: Number(e.target.value) })} style={s} />
-          <input placeholder="پورت روی سرور خارج" type="number" value={form.remotePort} onChange={(e) => setForm({ ...form, remotePort: Number(e.target.value) })} style={s} />
+      <div className="card" style={{ marginBottom: 22 }}>
+        <div className="section-title">{t('tun.formTitle')}</div>
+        <div className="grid cols-3" style={{ gap: 14 }}>
+          <Field label={t('tun.name')}><input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+          <Field label={t('tun.type')}>
+            <select className="select" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+              <option value="ssh">{t('tun.typeSsh')}</option>
+              <option value="direct">{t('tun.typeDirect')}</option>
+              <option value="frp">{t('tun.typeFrp')}</option>
+              <option value="wireguard">{t('tun.typeWg')}</option>
+            </select>
+          </Field>
+          <Field label={t('tun.localServer')}>
+            <select className="select" value={form.localServer} onChange={(e) => setForm({ ...form, localServer: e.target.value })}>
+              <option value="">{t('c.selectServer')}</option>
+              {servers.map((sv: any) => <option key={sv._id} value={sv._id}>{sv.name}</option>)}
+            </select>
+          </Field>
+          <Field label={t('tun.remoteServer')}>
+            <select className="select" value={form.remoteServer} onChange={(e) => setForm({ ...form, remoteServer: e.target.value })}>
+              <option value="">{t('c.selectServer')}</option>
+              {servers.map((sv: any) => <option key={sv._id} value={sv._id}>{sv.name}</option>)}
+            </select>
+          </Field>
+          <Field label={t('tun.localPort')}>
+            <input className="input ltr" type="number" value={form.localPort} onChange={(e) => setForm({ ...form, localPort: Number(e.target.value) })} />
+          </Field>
+          <Field label={t('tun.remotePort')}>
+            <input className="input ltr" type="number" value={form.remotePort} onChange={(e) => setForm({ ...form, remotePort: Number(e.target.value) })} />
+          </Field>
         </div>
+        <button className="btn btn-primary" style={{ marginTop: 18 }} onClick={addTunnel}>{t('tun.create')}</button>
       </div>
 
-      <div style={{ display: 'grid', gap: 12 }}>
-        {tunnels.map((t: any) => {
-          const local = servers.find((sv: any) => sv._id === t.localServer);
-          const remote = servers.find((sv: any) => sv._id === t.remoteServer);
-          const active = (t.status as string) === 'active';
-          return (
-            <div key={t._id} style={{ background: '#1e1e2e', border: '1px solid #313244', borderRadius: 12, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: active ? '#22c55e' : '#6b7280', display: 'inline-block' }} />
-                  <span style={{ fontWeight: 600 }}>{t.name}</span>
-                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: '#7c3aed22', color: '#7c3aed' }}>{typeLabel[t.type] || t.type}</span>
-                  {t.pid && <span style={{ fontSize: 11, color: '#6b7280' }}>pid {t.pid}</span>}
+      {tunnels.length === 0 ? (
+        <Empty title={t('tun.emptyTitle')} hint={t('tun.emptyHint')} />
+      ) : (
+        <div className="grid" style={{ gap: 12 }}>
+          {tunnels.map((tn: any) => {
+            const local = servers.find((sv: any) => sv._id === tn.localServer);
+            const remote = servers.find((sv: any) => sv._id === tn.remoteServer);
+            const active = (tn.status as string) === 'active';
+            return (
+              <div key={tn._id} className="card hoverable">
+                <div className="row" style={{ padding: 0, borderBottom: 0, alignItems: 'flex-start' }}>
+                  <div>
+                    <div className="row-title">
+                      <StatusDot status={tn.status} />
+                      {tn.name}
+                      <span className="badge badge-quiet">
+                        {tn.type === 'ssh' ? t('tun.sshTitle') : tn.type === 'direct' ? t('tun.directTitle') : tn.type}
+                      </span>
+                      {tn.pid && <span className="mono muted">pid {tn.pid}</span>}
+                      {active && <span className="badge">active</span>}
+                    </div>
+                    <div className="row-meta mono ltr">
+                      {local?.name || '?'}:{tn.localPort} ← {remote?.name || '?'}:{tn.remotePort}
+                    </div>
+                    {tn.lastError && <div className="row-meta" style={{ color: 'var(--fg-dim)' }}>{tn.lastError}</div>}
+                    {tn.startedAt && <div className="row-meta">{t('tun.startedAt', { when: fmtDate(tn.startedAt) })}</div>}
+                  </div>
+                  <div className="row-actions">
+                    {!active ? (
+                      <button className="btn btn-sm btn-primary" onClick={() => startTunnel(tn._id)} disabled={busy === tn._id || tn.type !== 'ssh'}
+                        title={tn.type !== 'ssh' ? t('tun.onlySsh') : ''}>
+                        {busy === tn._id ? t('tun.starting') : t('tun.start')}
+                      </button>
+                    ) : (
+                      <button className="btn btn-sm" onClick={() => stopTunnel(tn._id)} disabled={busy === tn._id}>{t('tun.stop')}</button>
+                    )}
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteTunnel(tn._id)}>{t('c.delete')}</button>
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: '#a0a0b0', marginTop: 4 }}>
-                  {local?.name || '؟'} :{t.localPort} ← {remote?.name || '؟'} :{t.remotePort}
-                </div>
-                {t.lastError && <div style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>{t.lastError}</div>}
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {!active ? (
-                  <button onClick={() => startTunnel(t._id)} disabled={busy === t._id || t.type !== 'ssh'} title={t.type !== 'ssh' ? 'فقط SSH پیاده‌سازی شده' : ''}
-                    style={{ ...btnStyle, background: '#22c55e', padding: '6px 16px', fontSize: 12 }}>▶ شروع</button>
-                ) : (
-                  <button onClick={() => stopTunnel(t._id)} disabled={busy === t._id}
-                    style={{ ...btnStyle, background: '#ef4444', padding: '6px 16px', fontSize: 12 }}>⏹ توقف</button>
-                )}
-                <button onClick={() => deleteTunnel(t._id)} style={{ ...btnStyle, background: 'transparent', border: '1px solid #313244', padding: '6px 16px', fontSize: 12 }}>🗑</button>
-              </div>
-            </div>
-          );
-        })}
-        {tunnels.length === 0 && <p style={{ color: '#6b7280', textAlign: 'center', padding: 40 }}>تانلی تعریف نشده. اولین تانل را با اتصال سرور ایران به خارج بساز! 🔀</p>}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </Layout>
   );
 }
-const s: any = { background: '#11111b', border: '1px solid #313244', borderRadius: 8, padding: '8px 12px', color: '#e0e0e0', fontSize: 13 };
-const btnStyle: any = { background: '#03a66d', color: 'white', border: 'none', padding: '8px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 };

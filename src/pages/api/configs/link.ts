@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB, Config, Server } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { generateLink } from '@/lib/links';
+import { openConfig, openServer } from '@/lib/credentials';
+import { isObjectId, fail, apiError } from '@/lib/validate';
 
 /** Returns the real share link (or wireguard .conf) for a stored config. */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,17 +12,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     await connectDB();
     const { id } = req.query;
-    const config = await Config.findById(id).lean() as any;
-    if (!config) return res.status(404).json({ error: 'config not found' });
-    const server = await Server.findById(config.serverId).lean() as any;
-    if (!server) return res.status(404).json({ error: 'server not found' });
+    if (!isObjectId(id)) return apiError(res, 400, 'api.idInvalid', 'invalid id');
+    const config = openConfig(await Config.findById(id).lean() as any);
+    if (!config) return apiError(res, 404, 'api.configNotFound', 'config not found');
+    const server = openServer(await Server.findById(config.serverId).lean() as any);
+    if (!server) return apiError(res, 404, 'api.serverNotFound', 'server not found');
 
     // SOCKS5: the proxy must have been deployed on the server first
     if (config.protocol === 'socks5') {
       if (!config.deployed) {
-        return res.status(400).json({
-          error: `پروکسی هنوز روی سرور فعال نشده — اول «فعال‌سازی روی سرور» را بزنید`,
-        });
+        return apiError(
+          res, 400, 'api.proxyNotDeployed',
+          'پروکسی هنوز روی سرور فعال نشده — اول «اجرا روی سرور» را بزنید',
+        );
       }
       const auth = `${config.socksUser}:${config.socksPass}`;
       return res.json({
@@ -34,10 +38,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!config.wgServerPub) {
         return res.status(400).json({
           error: 'کلید عمومی سرور (PubKey) برای WireGuard ثبت نشده — در فرم کانفیگ واردش کنید',
+          code: 'api.wgPubKeyMissing',
         });
       }
       if (!config.wgClientPriv) {
-        return res.status(400).json({ error: 'کلید خصوصی کلاینت وجود ندارد — کانفیگ را دوباره بسازید' });
+        return apiError(res, 400, 'api.wgClientKeyMissing', 'کلید خصوصی کلاینت وجود ندارد — کانفیگ را دوباره بسازید');
       }
       const conf = [
         '[Interface]',
@@ -57,10 +62,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const result = generateLink(config, { host: server.host });
     if ('error' in result) {
-      return res.status(400).json({ error: result.error });
+      return res.status(400).json(
+        result.code
+          ? { error: result.error, code: result.code, ...(result.vars ? { vars: result.vars } : {}) }
+          : { error: result.error },
+      );
     }
     res.json({ link: result.link, protocol: config.protocol });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    fail(res, err);
   }
 }

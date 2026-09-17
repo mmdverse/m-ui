@@ -34,11 +34,11 @@ export function requireAuth(req: NextApiRequest, res: NextApiResponse, role?: st
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
   const payload = token ? verifyToken(token) : null;
   if (!payload) {
-    res.status(401).json({ error: 'unauthorized' });
+    res.status(401).json({ error: 'unauthorized', code: 'api.unauthorized' });
     return null;
   }
   if (role && payload.role !== role) {
-    res.status(403).json({ error: 'forbidden' });
+    res.status(403).json({ error: 'forbidden', code: 'api.forbidden' });
     return null;
   }
   return payload;

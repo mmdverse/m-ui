@@ -1,18 +1,42 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import Layout from '@/components/Layout';
-import { api } from '@/lib/api';
+import { api, apiErrorText } from '@/lib/api';
+import { useI18n } from '@/i18n';
+import { PageHead, Msg, Empty, Field } from '@/components/ui';
+import { assessForIran, type Assessment } from '@/lib/evasion';
 
 const protocols = ['vmess', 'vless', 'trojan', 'shadowsocks', 'socks5', 'wireguard'];
 const transports = ['tcp', 'kcp', 'ws', 'http', 'quic', 'grpc'];
-const emptyForm = { name: '', serverId: '', protocol: 'vmess', port: 443, transport: 'ws', security: 'tls', domain: '', path: '/', sni: '', pbk: '', fp: 'chrome', sid: '', wgServerPub: '', wgAddress: '10.0.0.2/32', wgDns: '1.1.1.1' };
+const emptyForm = {
+  name: '', serverId: '', protocol: 'vmess', port: 443, transport: 'ws', security: 'tls',
+  domain: '', path: '/', sni: '', pbk: '', fp: 'chrome', sid: '',
+  wgServerPub: '', wgAddress: '10.0.0.2/32', wgDns: '1.1.1.1',
+};
+
+/** امتیاز عبور از فیلتر از کتابخانهٔ مشترک می‌آید. */
+function verdictOf(cfg: any): Assessment {
+  return assessForIran({
+    protocol: cfg.protocol, transport: cfg.transport, security: cfg.security,
+    port: cfg.port, domain: cfg.domain, sni: cfg.sni, path: cfg.path,
+    pbk: cfg.pbk, sid: cfg.sid, fp: cfg.fp, flow: cfg.flow,
+  });
+}
 
 export default function ConfigsPage() {
+  const { t } = useI18n();
   const [configs, setConfigs] = useState<any[]>([]);
   const [servers, setServers] = useState<any[]>([]);
   const [form, setForm] = useState<any>(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [msg, setMsg] = useState('');
+  const [kind, setKind] = useState<'info' | 'ok' | 'err'>('info');
+
+  function flash(text: string, k: 'info' | 'ok' | 'err' = 'info') {
+    setMsg(text);
+    setKind(k);
+  }
 
   async function load() {
     const [c, sv] = await Promise.all([api('/api/configs/list'), api('/api/servers/list')]);
@@ -29,8 +53,9 @@ export default function ConfigsPage() {
       setShowForm(false);
       setForm(emptyForm);
       await load();
+      flash(t('cfg.created'), 'ok');
     } catch (e: any) {
-      setMsg(e.message);
+      flash(apiErrorText(e, t), 'err');
     }
   }
 
@@ -38,19 +63,19 @@ export default function ConfigsPage() {
     try {
       const data = await api('/api/configs/link?id=' + cfg._id);
       await navigator.clipboard.writeText(data.link);
-      setMsg('✅ لینک ' + data.protocol + ' کپی شد (UUID ثابت سرور)');
+      flash(t('cfg.linkCopied', { protocol: data.protocol }), 'ok');
     } catch (e: any) {
-      setMsg(e.message);
+      flash(apiErrorText(e, t), 'err');
     }
   }
 
   async function deleteConfig(id: string) {
-    if (!confirm('کانفیگ حذف شود؟')) return;
+    if (!confirm(t('c.confirmConfig'))) return;
     try {
       await api('/api/configs/delete?id=' + id, { method: 'DELETE' });
       await load();
     } catch (e: any) {
-      setMsg(e.message);
+      flash(apiErrorText(e, t), 'err');
     }
   }
 
@@ -58,121 +83,178 @@ export default function ConfigsPage() {
     setMsg('');
     try {
       await api('/api/configs/deploy?id=' + cfg._id, { method: 'POST' });
-      setMsg('✅ پروکسی SOCKS5 روی سرور فعال شد — حالا لینک کپی کنید');
+      flash(t('cfg.deployedMsg'), 'ok');
       await load();
     } catch (e: any) {
-      setMsg('❌ ' + e.message);
+      flash(apiErrorText(e, t), 'err');
     }
   }
 
+  const verdictLabel = (v: Assessment['verdict']) => t(`verdict.${v}`);
+
   return (
     <Layout>
-      <Head><title>M-UI — کانفیگ‌ها</title></Head>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>🔗 مدیریت کانفیگ‌ها</h1>
-        <button onClick={() => setShowForm((v) => !v)} style={btnStyle}>{showForm ? 'بستن' : '➕ کانفیگ جدید'}</button>
-      </div>
-      {msg && <p style={{ color: msg.startsWith('✅') ? '#22c55e' : '#ef4444', fontSize: 13 }}>{msg}</p>}
+      <Head><title>{`M-UI — ${t('cfg.title')}`}</title></Head>
+      <PageHead eyebrow={t('cfg.eyebrow')} title={t('cfg.title')} sub={t('cfg.sub')}>
+        <Link href="/advisor" className="btn btn-ghost">{t('cfg.advisor')}</Link>
+        <button className="btn btn-primary" onClick={() => setShowForm((v) => !v)}>{showForm ? t('c.closeForm') : t('cfg.new')}</button>
+      </PageHead>
+
+      {msg && <Msg kind={kind}>{msg}</Msg>}
 
       {showForm && (
-        <div style={{ background: '#1e1e2e', borderRadius: 12, padding: 20, marginBottom: 20, border: '1px solid #313244' }}>
-          <h2 style={{ fontSize: 16, marginBottom: 12 }}>کانفیگ جدید</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <input placeholder="نام کانفیگ" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={s} />
-            <select value={form.serverId} onChange={(e) => setForm({ ...form, serverId: e.target.value })} style={s}>
-              <option value="">انتخاب سرور</option>
-              {servers.map((sv: any) => <option key={sv._id} value={sv._id}>{sv.name}</option>)}
-            </select>
-            <select value={form.protocol} onChange={(e) => setForm({ ...form, protocol: e.target.value })} style={s}>
-              {protocols.map((p) => <option key={p} value={p}>{p}</option>)}
-            </select>
-            <input type="number" placeholder="پورت" value={form.port} onChange={(e) => setForm({ ...form, port: Number(e.target.value) })} style={s} />
-            <select value={form.transport} onChange={(e) => setForm({ ...form, transport: e.target.value })} style={s}>
-              {transports.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <select value={form.security} onChange={(e) => setForm({ ...form, security: e.target.value })} style={s}>
-              <option value="none">بدون TLS</option>
-              <option value="tls">TLS</option>
-              <option value="reality">REALITY</option>
-            </select>
+        <div className="card" style={{ marginBottom: 22 }}>
+          <div className="section-title">{t('cfg.formTitle')}</div>
+          <div className="grid cols-3" style={{ gap: 14 }}>
+            <Field label={t('cfg.name')}>
+              <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </Field>
+            <Field label={t('cfg.server')}>
+              <select className="select" value={form.serverId} onChange={(e) => setForm({ ...form, serverId: e.target.value })}>
+                <option value="">{t('c.selectServer')}</option>
+                {servers.map((sv: any) => <option key={sv._id} value={sv._id}>{sv.name}</option>)}
+              </select>
+            </Field>
+            <Field label={t('cfg.protocol')}>
+              <select className="select" value={form.protocol} onChange={(e) => setForm({ ...form, protocol: e.target.value })}>
+                {protocols.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </Field>
+            <Field label={t('cfg.port')}>
+              <input className="input ltr" type="number" value={form.port} onChange={(e) => setForm({ ...form, port: Number(e.target.value) })} />
+            </Field>
+            <Field label={t('cfg.transport')}>
+              <select className="select" value={form.transport} onChange={(e) => setForm({ ...form, transport: e.target.value })}>
+                {transports.map((tr) => <option key={tr} value={tr}>{tr}</option>)}
+              </select>
+            </Field>
+            <Field label={t('cfg.security')}>
+              <select className="select" value={form.security} onChange={(e) => setForm({ ...form, security: e.target.value })}>
+                <option value="none">{t('cfg.secNone')}</option>
+                <option value="tls">TLS</option>
+                <option value="reality">REALITY</option>
+              </select>
+            </Field>
             {(form.security === 'tls' || form.security === 'reality') && (
-              <input placeholder="دامنه (SNI)" value={form.sni} onChange={(e) => setForm({ ...form, sni: e.target.value })} style={s} />
+              <Field label={t('cfg.sni')} hint={t('cfg.sniHint')}>
+                <input className="input ltr" value={form.sni} onChange={(e) => setForm({ ...form, sni: e.target.value })} />
+              </Field>
             )}
-            <input placeholder="Path (فقط WebSocket)" value={form.path} onChange={(e) => setForm({ ...form, path: e.target.value })} style={s} />
-            <input placeholder="دامنه CDN" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} style={s} />
+            <Field label={t('cfg.path')}>
+              <input className="input ltr" value={form.path} onChange={(e) => setForm({ ...form, path: e.target.value })} />
+            </Field>
+            <Field label={t('cfg.cdn')}>
+              <input className="input ltr" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
+            </Field>
+
             {form.security === 'reality' && (
               <>
-                <input placeholder="کلید عمومی REALITY (pbk)" value={form.pbk} onChange={(e) => setForm({ ...form, pbk: e.target.value })} style={{ ...s, gridColumn: '1 / 3', direction: 'ltr' }} />
-                <select value={form.fp} onChange={(e) => setForm({ ...form, fp: e.target.value })} style={s}>
-                  {['chrome', 'firefox', 'edge', 'safari', 'ios', 'android', '360', 'qq'].map((f) => <option key={f} value={f}>{f}</option>)}
-                </select>
-                <input placeholder="Short ID (اختیاری)" value={form.sid} onChange={(e) => setForm({ ...form, sid: e.target.value })} style={{ ...s, direction: 'ltr' }} />
+                <Field label={t('cfg.pbk')} hint={t('cfg.pbkHint')}>
+                  <input className="input ltr" value={form.pbk} onChange={(e) => setForm({ ...form, pbk: e.target.value })} />
+                </Field>
+                <Field label={t('cfg.fp')}>
+                  <select className="select" value={form.fp} onChange={(e) => setForm({ ...form, fp: e.target.value })}>
+                    {['chrome', 'firefox', 'edge', 'safari', 'ios', 'android', '360', 'qq'].map((f) => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                </Field>
+                <Field label={t('cfg.sid')}>
+                  <input className="input ltr" value={form.sid} onChange={(e) => setForm({ ...form, sid: e.target.value })} />
+                </Field>
               </>
             )}
+
             {form.protocol === 'wireguard' && (
               <>
-                <input placeholder="کلید عمومی سرور (wg pubkey)" value={form.wgServerPub} onChange={(e) => setForm({ ...form, wgServerPub: e.target.value })} style={{ ...s, gridColumn: '1 / 3', direction: 'ltr' }} />
-                <input placeholder="آدرس کلاینت (مثل 10.0.0.2/32)" value={form.wgAddress} onChange={(e) => setForm({ ...form, wgAddress: e.target.value })} style={s} />
-                <input placeholder="DNS (پیش‌فرض 1.1.1.1)" value={form.wgDns} onChange={(e) => setForm({ ...form, wgDns: e.target.value })} style={s} />
+                <Field label={t('cfg.wgPub')}>
+                  <input className="input ltr" value={form.wgServerPub} onChange={(e) => setForm({ ...form, wgServerPub: e.target.value })} />
+                </Field>
+                <Field label={t('cfg.wgAddr')}>
+                  <input className="input ltr" value={form.wgAddress} onChange={(e) => setForm({ ...form, wgAddress: e.target.value })} />
+                </Field>
+                <Field label={t('cfg.wgDns')}>
+                  <input className="input ltr" value={form.wgDns} onChange={(e) => setForm({ ...form, wgDns: e.target.value })} />
+                </Field>
               </>
             )}
-            {form.protocol === 'socks5' && (
-              <p style={{ fontSize: 12, color: '#6b7280', gridColumn: '1 / -1', margin: 0 }}>
-                بعد از ساخت، دکمهٔ «فعال‌سازی روی سرور» پنل microsocks را روی همین سرور نصب و روی پورت انتخابی اجرا می‌کند
-                (تست اتصال با TCP از سمت پنل انجام می‌شود).
-              </p>
-            )}
           </div>
-          <button onClick={addConfig} style={{ ...btnStyle, marginTop: 12 }}>💾 ایجاد کانفیگ</button>
+
+          <div className="divider" />
+          <div className="kv">
+            <span>{t('cfg.scoreLine', { score: assessForIran({ ...form }).score })}</span>
+            <span className="dim">{verdictLabel(assessForIran({ ...form }).verdict)}</span>
+          </div>
+
+          {form.protocol === 'socks5' && (
+            <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>{t('cfg.socksNote')}</p>
+          )}
+          <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+            <button className="btn btn-primary" onClick={addConfig}>{t('cfg.create')}</button>
+            <button className="btn btn-ghost" onClick={() => setShowForm(false)}>{t('c.cancel')}</button>
+          </div>
         </div>
       )}
 
-      <div style={{ display: 'grid', gap: 12 }}>
-        {configs.map((cfg: any) => {
-          const srv = servers.find((sv: any) => sv._id === cfg.serverId);
-          return (
-            <div key={cfg._id} style={{ background: '#1e1e2e', border: '1px solid #313244', borderRadius: 12, padding: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: 4, background: '#03a66d22', color: '#03a66d', fontSize: 11, fontWeight: 600 }}>{cfg.protocol}</span>
-                    <span style={{ fontWeight: 600 }}>{cfg.name}</span>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>→ {srv?.name || 'نامشخص'} ({srv?.location || '؟'})</span>
-                    {!cfg.isActive && <span style={{ fontSize: 11, color: '#ef4444' }}>غیرفعال</span>}
+      {configs.length === 0 ? (
+        <Empty title={t('cfg.emptyTitle')} hint={t('cfg.emptyHint')} />
+      ) : (
+        <div className="grid" style={{ gap: 12 }}>
+          {configs.map((cfg: any) => {
+            const srv = servers.find((sv: any) => sv._id === cfg.serverId);
+            const v = verdictOf(cfg);
+            return (
+              <div key={cfg._id} className="card hoverable">
+                <div className="row" style={{ padding: 0, borderBottom: 0, alignItems: 'flex-start' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="row-title">
+                      <span className="badge">{cfg.protocol}</span>
+                      {cfg.name}
+                      <span className="muted" style={{ fontSize: 12 }}>
+                        {t('cfg.toServer', { name: srv?.name || t('c.none'), loc: srv?.location || t('c.none') })}
+                      </span>
+                      {!cfg.isActive && <span className="badge">{t('cfg.disabled')}</span>}
+                    </div>
+                    <div className="row-meta mono ltr">
+                      {srv?.host}:{cfg.port} | {cfg.transport} | {cfg.security}
+                      {cfg.sni && ` | sni ${cfg.sni}`}
+                      {cfg.path && cfg.path !== '/' && ` | path ${cfg.path}`}
+                      {cfg.security === 'reality' && ` | fp ${cfg.fp}`}
+                    </div>
+                    <div className="kv" style={{ marginTop: 9 }}>
+                      <span>
+                        {t('cfg.filterScore')} <b>{verdictLabel(v.verdict)}</b> ({v.score}/100)
+                      </span>
+                      {cfg.protocol === 'socks5' && (
+                        <span>
+                          {cfg.deployed ? t('cfg.proxyActive') : t('cfg.proxyInactive')}
+                          {cfg.deployError ? ` · ${cfg.deployError}` : ''}
+                        </span>
+                      )}
+                      {!['socks5', 'wireguard'].includes(cfg.protocol) && (
+                        <span>{t('cfg.uuid')} <b className="mono">{String(cfg.uuid || '').slice(0, 8)}…</b></span>
+                      )}
+                      {cfg.protocol === 'wireguard' && (
+                        <span>{t('cfg.clientPub')} <b className="mono">{String(cfg.wgClientPub || '').slice(0, 10)}…</b></span>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: '#a0a0b0', marginTop: 4, direction: 'ltr', textAlign: 'left' }}>
-                    {srv?.host}:{cfg.port} | {cfg.transport} | {cfg.security}
-                    {cfg.sni && ` | SNI: ${cfg.sni}`}
-                    {cfg.path && ` | Path: ${cfg.path}`}
-                    {cfg.security === 'reality' && ` | pbk: ${(cfg.pbk || '').slice(0, 14)}… | fp: ${cfg.fp}`}
-                  </div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, direction: 'ltr', textAlign: 'left' }}>
-                    {cfg.protocol === 'wireguard' && <>ClientPub: {cfg.wgClientPub}</>}
-                    {cfg.protocol === 'socks5' && (
-                      cfg.deployed
-                        ? <>✅ پروکسی روی سرور فعال · پورت {cfg.port}</>
-                        : <>⚠️ هنوز فعال نشده {cfg.deployError ? '· ' + cfg.deployError : ''}</>
+                  <div className="row-actions">
+                    {cfg.protocol === 'socks5' && !cfg.deployed && (
+                      <button className="btn btn-sm" onClick={() => deployConfig(cfg)}>{t('cfg.deployBtn')}</button>
                     )}
-                    {!['socks5', 'wireguard'].includes(cfg.protocol) && <>UUID: {cfg.uuid}</>}
+                    <Link className="btn btn-sm" href={`/advisor?protocol=${cfg.protocol}&transport=${cfg.transport}&security=${cfg.security}&port=${cfg.port}`}>
+                      {t('cfg.inspect')}
+                    </Link>
+                    <button className="btn btn-sm" onClick={() => copyLink(cfg)}>
+                      {cfg.protocol === 'wireguard' ? t('cfg.copyConfig') : t('cfg.copyLink')}
+                    </button>
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteConfig(cfg._id)}>{t('c.delete')}</button>
                   </div>
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {cfg.protocol === 'socks5' && !cfg.deployed && (
-                    <button onClick={() => deployConfig(cfg)} style={{ ...btnStyle, background: '#f59e0b', padding: '6px 14px', fontSize: 12 }}>🚀 فعال‌سازی روی سرور</button>
-                  )}
-                  <button onClick={() => copyLink(cfg)} style={{ ...btnStyle, background: '#7c3aed', padding: '6px 14px', fontSize: 12 }}>
-                    {cfg.protocol === 'wireguard' ? '📋 کپی کانفیگ' : '📋 کپی لینک'}
-                  </button>
-                  <button onClick={() => deleteConfig(cfg._id)} style={{ ...btnStyle, background: '#ef4444', padding: '6px 14px', fontSize: 12 }}>🗑</button>
                 </div>
               </div>
-            </div>
-          );
-        })}
-        {configs.length === 0 && <p style={{ color: '#6b7280', textAlign: 'center', padding: 40 }}>هنوز کانفیگی ساخته نشده. اولین کانفیگ را بساز! 🚀</p>}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </Layout>
   );
 }
-const s: any = { background: '#11111b', border: '1px solid #313244', borderRadius: 8, padding: '8px 12px', color: '#e0e0e0', fontSize: 13 };
-const btnStyle: any = { background: '#03a66d', color: 'white', border: 'none', padding: '8px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 };

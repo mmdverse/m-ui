@@ -1,3 +1,5 @@
+import type { TFunc } from '@/i18n/core';
+
 /**
  * Client-side fetch helper: attaches the stored JWT and unwraps errors.
  * Token storage is resilient: localStorage when available (normal browsers),
@@ -44,6 +46,36 @@ export function setToken(token: string | null) {
   }
 }
 
+/**
+ * An API failure that keeps the server's machine-readable `code` (and its
+ * `vars`) so the UI can say it in the user's language. `message` stays as-is,
+ * which is what an unknown code falls back to.
+ */
+export class ApiError extends Error {
+  status?: number;
+  code?: string;
+  vars?: Record<string, string | number>;
+  constructor(message: string, status?: number, code?: string, vars?: Record<string, string | number>) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+    this.vars = vars;
+  }
+}
+
+/** Server error → text in the active language; falls back to the raw message. */
+export function apiErrorText(err: unknown, t: TFunc): string {
+  const e = err as { message?: string; code?: string; vars?: Record<string, string | number> } | null;
+  if (e?.code && e.code.startsWith('api.')) {
+    const text = t(e.code, e.vars);
+    if (text !== e.code) return text;
+  }
+  if (e?.message === 'network') return t('nav.connError');
+  if (e?.message === 'unauthorized') return t('api.unauthorized');
+  return e?.message || t('api.internal');
+}
+
 export async function api<T = any>(url: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -63,6 +95,6 @@ export async function api<T = any>(url: string, options: RequestInit = {}): Prom
     if (typeof window !== 'undefined') window.location.href = '/';
     throw new Error('unauthorized');
   }
-  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  if (!res.ok) throw new ApiError(data.error || `HTTP ${res.status}`, res.status, data.code, data.vars);
   return data;
 }

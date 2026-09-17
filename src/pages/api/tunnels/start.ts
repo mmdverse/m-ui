@@ -2,27 +2,35 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB, Tunnel, Server } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { startTunnel, lastExit } from '@/lib/tunnel';
+import { serverCredentials } from '@/lib/credentials';
+import { isObjectId, fail, apiError } from '@/lib/validate';
 import { recordActivity } from '@/lib/activity';
 
 /** Starts a real SSH reverse tunnel (only type 'ssh' is implemented). */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const payload = requireAuth(req, res);
+  const payload = requireAuth(req, res, 'admin');
   if (!payload) return;
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return apiError(res, 405, 'api.methodNotAllowed', 'Method not allowed');
   let tunnel: any = null;
   try {
     await connectDB();
     const { id } = req.query || req.body || {};
+    if (!isObjectId(id)) return apiError(res, 400, 'api.idInvalid', 'invalid id');
     tunnel = await Tunnel.findById(id).lean() as any;
-    if (!tunnel) return res.status(404).json({ error: 'tunnel not found' });
+    if (!tunnel) return apiError(res, 404, 'api.tunnelNotFound', 'tunnel not found');
     if (tunnel.type !== 'ssh') {
-      return res.status(400).json({
-        error: `تایپ «${tunnel.type}» هنوز پیاده‌سازی نشده؛ فعلاً فقط تانل SSH مخالف (reverse) پشتیبانی می‌شود`,
-      });
+      return apiError(
+        res, 400, 'api.tunnelTypeNotImplemented',
+        `تایپ «${tunnel.type}» هنوز پیاده‌سازی نشده؛ فعلاً فقط تانل SSH مخالف (reverse) پشتیبانی می‌شود`,
+        { type: tunnel.type },
+      );
     }
-    const remote = await Server.findById(tunnel.remoteServer).lean() as any;
-    if (!remote) return res.status(404).json({ error: 'remote server not found' });
+    const remote = await serverCredentials(tunnel.remoteServer);
+    if (!remote) return apiError(res, 404, 'api.serverNotFound', 'remote server not found');
 
+    if (!tunnel.localPort || !tunnel.remotePort) {
+      return apiError(res, 400, 'api.tunnelPortsRequired', 'تانل بدون پورت محلی/راه‌دور قابل اجرا نیست');
+    }
     const pid = await startTunnel(String(tunnel._id), {
       host: remote.host,
       port: remote.port,
@@ -34,13 +42,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       remotePort: tunnel.remotePort,
     });
     await Tunnel.updateOne({ _id: tunnel._id }, { $set: { status: 'active', pid, lastError: '' } });
-    await recordActivity(`تانل «${tunnel.name}» فعال شد (pid ${pid})`, 'success', payload.username);
+    await recordActivity(
+      `تانل «${tunnel.name}» فعال شد (pid ${pid})`,
+      'success', payload.username, 'act.tunnelStarted', { name: tunnel.name, pid },
+    );
     res.json({ success: true, pid });
   } catch (err: any) {
     if (tunnel && tunnel._id) {
       await Tunnel.updateOne({ _id: tunnel._id }, { $set: { status: 'error', lastError: err.message } }).catch(() => {});
     }
-    res.status(500).json({ error: err.message });
+    fail(res, err);
   }
 }
 

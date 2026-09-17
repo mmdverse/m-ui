@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB, Server, Config, Tunnel, User, UsageSample } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
+import { fail } from '@/lib/validate';
 
 /** Real dashboard numbers: DB counts + 7-day traffic history from UsageSample. */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -59,6 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       trafficHistory,
     });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    fail(res, err);
   }
 }
