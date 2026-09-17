@@ -1,0 +1,416 @@
+{
+  "version": 1,
+  "generatedFrom": "src/lib/censorship/countries.ts",
+  "lists": {
+    "ir": {
+      "sniBlocked": [
+        "x.com",
+        "twitter.com",
+        "instagram.com",
+        "facebook.com",
+        "youtube.com",
+        "telegram.org"
+      ],
+      "portsBlocked": [
+        25
+      ],
+      "asnBlocked": [
+        "digitalocean",
+        "linode",
+        "vultr"
+      ]
+    },
+    "ru": {
+      "sniBlocked": [
+        "instagram.com",
+        "facebook.com",
+        "x.com",
+        "signal.org"
+      ],
+      "asnBlocked": [
+        "cloudflare",
+        "ovh",
+        "hetzner",
+        "digitalocean"
+      ],
+      "quic": {
+        "versions": [
+          "1"
+        ],
+        "minPayload": 1001,
+        "dports": [
+          443
+        ]
+      },
+      "ech": {
+        "triggerSni": [
+          "cloudflare-ech.com",
+          "cloudflare.com"
+        ],
+        "needsBothSplits": true
+      }
+    },
+    "cn": {
+      "sniBlocked": [
+        "google.com",
+        "youtube.com",
+        "facebook.com",
+        "x.com",
+        "wikipedia.org",
+        "telegram.org",
+        "whatsapp.com",
+        "signal.org",
+        "instagram.com"
+      ],
+      "asnBlocked": [
+        "digitalocean",
+        "linode",
+        "vultr",
+        "choopa"
+      ],
+      "fep": {
+        "printablePrefix": 6,
+        "asciiFraction": 0.5,
+        "asciiRun": 6,
+        "popcountMin": 0.45,
+        "popcountMax": 0.55
+      },
+      "quic": {
+        "versions": [
+          "1"
+        ],
+        "minPayload": 1200,
+        "dports": [
+          443
+        ]
+      },
+      "tlsInTls": {
+        "minFirstRecord": 280,
+        "maxFirstRecord": 700,
+        "headerMax": 120,
+        "defeatedBy": [
+          "reality-vision",
+          "reality-xhttp"
+        ]
+      }
+    },
+    "tm": {
+      "sniBlocked": [
+        "youtube.com",
+        "facebook.com",
+        "instagram.com",
+        "telegram.org"
+      ],
+      "sniAllowOnly": [
+        ".tm",
+        "yandex.ru",
+        "mail.ru",
+        "vk.com",
+        "ok.ru"
+      ],
+      "asnBlocked": [
+        "digitalocean",
+        "hetzner",
+        "ovh",
+        "vultr",
+        "linode",
+        "amazon",
+        "google"
+      ],
+      "fep": {
+        "printablePrefix": 6,
+        "asciiFraction": 0.5,
+        "asciiRun": 6,
+        "popcountMin": 0.45,
+        "popcountMax": 0.55
+      }
+    },
+    "by": {
+      "sniBlocked": [
+        "instagram.com",
+        "facebook.com",
+        "x.com",
+        "tiktok.com"
+      ],
+      "asnBlocked": [
+        "ovh",
+        "hetzner"
+      ]
+    },
+    "ae": {
+      "sniBlocked": [
+        "signal.org",
+        "discord.com"
+      ],
+      "ja4": {
+        "ja4Allow": [
+          "t13d1516h2_8daaf6152771_8ee26baaef31",
+          "t13d1516h2_8daaf6152771_8ee26baaef31",
+          "t13d1715h2_5b57614c22b0_a06ecb99ca30",
+          "t13d2013h2_a09f3c656075_2ee3dc641d29",
+          "t13d2613h2_2802a3db6c62_a7cb7461f8a0",
+          "t12d120700_d34a8e72043a_ba336a2cc70c",
+          "t13d1515h2_8daaf6152771_d2a542b11920"
+        ],
+        "ja4Names": {
+          "t13d1516h2_8daaf6152771_8ee26baaef31": "chrome",
+          "t13d1715h2_5b57614c22b0_a06ecb99ca30": "firefox",
+          "t13d2013h2_a09f3c656075_2ee3dc641d29": "safari",
+          "t13d1515h2_8daaf6152771_d2a542b11920": "edge",
+          "t13d2613h2_2802a3db6c62_a7cb7461f8a0": "ios",
+          "t12d120700_d34a8e72043a_ba336a2cc70c": "android",
+          "t12d2010s2_0bf03fa604e3_b8ffd2d1c0e3": "360",
+          "t13d1516h2_8daaf6152771_300703f211b6": "qq",
+          "t13d1710h2_6fb5bf16457f_c9d69dff1e9a": "randomized"
+        }
+      },
+      "portsBlocked": []
+    },
+    "kz": {
+      "sniBlocked": [
+        "facebook.com",
+        "instagram.com",
+        "x.com",
+        "tiktok.com"
+      ],
+      "ech": {
+        "triggerSni": [
+          "cloudflare-ech.com",
+          "cloudflare.com"
+        ],
+        "needsBothSplits": true
+      },
+      "asnBlocked": [
+        "hetzner",
+        "ovh"
+      ]
+    },
+    "tr": {
+      "sniBlocked": [
+        "instagram.com",
+        "wikipedia.org"
+      ]
+    },
+    "pk": {
+      "sniBlocked": [
+        "x.com",
+        "tiktok.com",
+        "wikipedia.org"
+      ],
+      "asnBlocked": [
+        "digitalocean",
+        "vultr"
+      ]
+    },
+    "sa": {
+      "sniBlocked": [
+        "signal.org",
+        "discord.com"
+      ]
+    },
+    "open": {
+      "sniBlocked": []
+    }
+  },
+  "fingerprints": {
+    "wireguardInitLength": 148,
+    "wireguardMsgType": 1,
+    "openvpnOpcodes": [
+      56,
+      72,
+      80,
+      88
+    ],
+    "quicDecryptable": [
+      "1"
+    ]
+  },
+  "activeProbe": {
+    "suspiciousFirstPacketMin": 200,
+    "entropyThreshold": 7.5,
+    "probeTypes": [
+      "replay",
+      "random-12",
+      "random-1024",
+      "http-404",
+      "tls",
+      "quic",
+      "ackless"
+    ]
+  },
+  "countryLayers": {
+    "ir": [
+      "dns_poison",
+      "http_host_inject",
+      "sni_block",
+      "proto_whitelist",
+      "active_probe",
+      "proto_fingerprint",
+      "udp_filter",
+      "ip_block"
+    ],
+    "ru": [
+      "sni_block",
+      "ech_drop",
+      "reassembly",
+      "quic_v1_fingerprint",
+      "udp_filter",
+      "proto_fingerprint",
+      "ip_block",
+      "sni_whitelist",
+      "ml_flow"
+    ],
+    "cn": [
+      "dns_poison",
+      "dns_doh_block",
+      "sni_block",
+      "proto_fingerprint",
+      "fep_detect",
+      "active_probe",
+      "tls_in_tls",
+      "quic_sni",
+      "udp_filter",
+      "ip_block",
+      "ml_flow"
+    ],
+    "tm": [
+      "proto_whitelist",
+      "sni_whitelist",
+      "fep_detect",
+      "ip_block",
+      "active_probe"
+    ],
+    "by": [
+      "sni_block",
+      "proto_fingerprint",
+      "ip_block",
+      "udp_filter"
+    ],
+    "ae": [
+      "ja4_fingerprint",
+      "proto_fingerprint",
+      "sni_block",
+      "udp_filter",
+      "ip_block"
+    ],
+    "kz": [
+      "sni_block",
+      "ech_drop",
+      "ip_block",
+      "udp_filter"
+    ],
+    "tr": [
+      "sni_block",
+      "proto_fingerprint",
+      "udp_filter"
+    ],
+    "pk": [
+      "sni_block",
+      "proto_fingerprint",
+      "ip_block",
+      "udp_filter"
+    ],
+    "sa": [
+      "proto_fingerprint",
+      "sni_block",
+      "udp_filter"
+    ],
+    "open": []
+  },
+  "countrySystem": {
+    "ir": {
+      "system": "NGFW / «سپهر»",
+      "family": "gfi"
+    },
+    "ru": {
+      "system": "TSPU / RKN",
+      "family": "tspu"
+    },
+    "cn": {
+      "system": "GFW",
+      "family": "gfi"
+    },
+    "tm": {
+      "system": "وایت‌لیست کامل",
+      "family": "whitelist"
+    },
+    "by": {
+      "system": "Belpak / مدل روسی",
+      "family": "tspu"
+    },
+    "ae": {
+      "system": "Etisalat / du DPI",
+      "family": "ja4"
+    },
+    "kz": {
+      "system": "KZ DPI (نسخهٔ صادرشدهٔ GFW/TSPU)",
+      "family": "tspu"
+    },
+    "tr": {
+      "system": "BTK",
+      "family": "ja4"
+    },
+    "pk": {
+      "system": "PTA",
+      "family": "ja4"
+    },
+    "sa": {
+      "system": "CITC",
+      "family": "ja4"
+    },
+    "open": {
+      "system": "بدون فیلتر سازمانی",
+      "family": "open"
+    }
+  },
+  "simulatedLayers": {
+    "ir": [
+      "sni_block",
+      "proto_fingerprint"
+    ],
+    "ru": [
+      "sni_block",
+      "ech_drop",
+      "reassembly",
+      "quic_v1_fingerprint",
+      "proto_fingerprint",
+      "sni_whitelist"
+    ],
+    "cn": [
+      "sni_block",
+      "proto_fingerprint",
+      "fep_detect",
+      "quic_sni"
+    ],
+    "tm": [
+      "sni_whitelist",
+      "fep_detect"
+    ],
+    "by": [
+      "sni_block",
+      "proto_fingerprint"
+    ],
+    "ae": [
+      "ja4_fingerprint",
+      "proto_fingerprint",
+      "sni_block"
+    ],
+    "kz": [
+      "sni_block",
+      "ech_drop"
+    ],
+    "tr": [
+      "sni_block",
+      "proto_fingerprint"
+    ],
+    "pk": [
+      "sni_block",
+      "proto_fingerprint"
+    ],
+    "sa": [
+      "proto_fingerprint",
+      "sni_block"
+    ],
+    "open": []
+  }
+}

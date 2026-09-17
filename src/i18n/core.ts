@@ -8,6 +8,7 @@ import en from './en';
 import ru from './ru';
 import ar from './ar';
 import zh from './zh';
+import { WORLD_MESSAGES } from './world';
 
 export type MsgKey = keyof typeof fa;
 
@@ -35,7 +36,17 @@ export const LOCALE_META: Record<Locale, LocaleMeta> = {
 export const DEFAULT_LOCALE: Locale = 'fa';
 export const STORE_KEY = 'mui_locale';
 
-const TABLES: Record<Locale, Record<MsgKey, string>> = { fa, en, ru, ar, zh };
+// پیام‌های ماژول اطلس جدا نگه داشته می‌شوند (کلیدهایشان یک‌جا و قابل‌مقایسه‌اند)
+// و این‌جا روی جدول اصلی هر زبان سوار می‌شوند.
+const withWorld = (base: Record<string, string>, locale: Locale) => ({ ...base, ...WORLD_MESSAGES[locale] });
+
+const TABLES: Record<Locale, Record<string, string>> = {
+  fa: withWorld(fa, 'fa'),
+  en: withWorld(en, 'en'),
+  ru: withWorld(ru, 'ru'),
+  ar: withWorld(ar, 'ar'),
+  zh: withWorld(zh, 'zh'),
+};
 
 /** امضای تابع ترجمه — جاهایی که فقط متن لازم است از این استفاده می‌کنند. */
 export type TFunc = (key: string, vars?: Record<string, string | number>) => string;

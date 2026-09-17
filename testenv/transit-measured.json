@@ -1,0 +1,25 @@
+{
+  "xray": "Xray 26.3.27 (Xray, Penetrates Everything.) d2758a0 (go1.26.1 linux/amd64)",
+  "method": "local loopback chain: client(REALITY+Vision+finalmask) -> N nodes -> python http origin; median of 12 curls",
+  "note": "این سربار *پردازش هر گره* است؛ تأخیر جغرافیایی روی loopback اندازه‌گیری‌شدنی نیست.",
+  "scenarios": [
+    {
+      "hops": 1,
+      "rounds_ok": 12,
+      "median_ms": 91.463,
+      "min_ms": 57.092,
+      "max_ms": 5426.32,
+      "usable": true
+    },
+    {
+      "hops": 3,
+      "rounds_ok": 12,
+      "median_ms": 91.906,
+      "min_ms": 57.141,
+      "max_ms": 8002.994,
+      "usable": true
+    }
+  ],
+  "per_hop_overhead_ms": 0.222,
+  "verdict": "PASS"
+}

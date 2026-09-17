@@ -6,8 +6,10 @@ import en from '../src/i18n/en';
 import ru from '../src/i18n/ru';
 import ar from '../src/i18n/ar';
 import zh from '../src/i18n/zh';
+import { WORLD_MESSAGES } from '../src/i18n/world';
 import { detectLocale, interpolate, translate, LOCALES, LOCALE_META } from '../src/i18n/core';
 import { assessForIran } from '../src/lib/evasion';
+import { COUNTRY_ORDER, LAYER_META, PLANS, PROFILES, countryLabelKey, type CountryId } from '../src/lib/censorship';
 
 const tables = { en, ru, ar, zh } as const;
 /**
@@ -24,6 +26,9 @@ function walk(dir: string): string[] {
 /** حروف/ارقامی که فقط در فارسی به کار می‌روند — عربی از معادل‌های خودش استفاده می‌کند. */
 const PERSIAN_ONLY = /[\u067E\u0686\u0698\u06A9\u06AF\u06CC\u06F0-\u06F9]/;
 const faKeys = Object.keys(fa).sort();
+/** دیکشنری ماژول اطلس هم بخشی از سطح i18n است (کلیدهایش را موتور تولید می‌کند). */
+const worldKeys = Object.keys(WORLD_MESSAGES.fa).sort();
+const knownKeys = new Set([...faKeys, ...worldKeys]);
 
 describe('i18n — هم‌سانی کلیدها', () => {
   for (const [name, table] of Object.entries(tables)) {
@@ -136,7 +141,7 @@ describe('i18n — پیام‌های موتور فیلترشکن', () => {
 
 describe('i18n — کلیدهای استفاده‌شده در کد', () => {
   it('هیچ t(\'key\') ثابتی به کلید ناموجود اشاره نمی‌کند', () => {
-    const known = new Set(Object.keys(fa));
+    const known = knownKeys;
     const missing: string[] = [];
     for (const file of walk('src')) {
       const src = fs.readFileSync(file, 'utf8');
@@ -148,7 +153,7 @@ describe('i18n — کلیدهای استفاده‌شده در کد', () => {
   });
 
   it('خانواده‌های کلید پویا (verdict.*، status.*، ev.summary.*، ev.protocol-*) کامل‌اند', () => {
-    const known = new Set(Object.keys(fa));
+    const known = knownKeys;
     for (const key of [
       'verdict.resilient', 'verdict.usable', 'verdict.fragile', 'verdict.blocked',
       'status.online', 'status.offline', 'status.active', 'status.error', 'status.unknown',
@@ -212,5 +217,53 @@ describe('i18n — کدهای خطای API', () => {
         expect(varsOf((table as Record<string, string>)[key]), `${key}`).toBe(a);
       }
     }
+  });
+});
+describe('i18n — ماژول اطلس فیلترینگ', () => {
+  for (const name of ['en', 'ru', 'ar', 'zh'] as const) {
+    it(`«${name}» دقیقاً همان کلیدهای اطلس را دارد`, () => {
+      expect(Object.keys(WORLD_MESSAGES[name]).sort()).toEqual(worldKeys);
+    });
+
+    it(`«${name}» متن اطلس را واقعاً ترجمه کرده (کپی فارسی نبوده)`, () => {
+      for (const [key, value] of Object.entries(WORLD_MESSAGES[name])) {
+        expect(value.trim().length, `کلید ${key}`).toBeGreaterThan(0);
+        expect(PERSIAN_ONLY.test(value), `کلید ${key} ترجمه نشده: ${value}`).toBe(false);
+      }
+    });
+  }
+
+  it('جای‌نگهدارهای اطلس بین زبان‌ها یکسان است', () => {
+    const varsOf = (s: string) => (s.match(/\{(\w+)\}/g) || []).sort().join(',');
+    for (const key of worldKeys) {
+      const expected = varsOf(WORLD_MESSAGES.fa[key]);
+      for (const name of ['en', 'ru', 'ar', 'zh'] as const) {
+        expect(varsOf(WORLD_MESSAGES[name][key]), `${name} → ${key}`).toBe(expected);
+      }
+    }
+  });
+
+  it('هر لایه، هر کشور و هر نکتهٔ مدل، متن ترجمه‌شده دارد', () => {
+    // کلیدهای پویا از خودِ موتور می‌آیند؛ اگر لایه‌ای اضافه شود و متنش نباشد،
+    // این تست می‌گیرد (به‌جای این‌که در UI خام دیده شود).
+    const needed: string[] = [];
+    for (const id of COUNTRY_ORDER) needed.push(countryLabelKey(id));
+    for (const id of Object.keys(LAYER_META)) needed.push(`world.layer.${id}`);
+    for (const id of Object.keys(PROFILES)) for (const note of PROFILES[id as CountryId].notes) needed.push(`world.note.${note}`);
+    for (const id of Object.keys(PLANS)) needed.push(`world.verdict.resilient`); // خانوادهٔ verdict ثابت
+    for (const key of needed) {
+      for (const name of ['fa', 'en', 'ru', 'ar', 'zh'] as const) {
+        const table = name === 'fa' ? WORLD_MESSAGES.fa : WORLD_MESSAGES[name];
+        expect(table[key], `${name} → ${key}`).toBeTruthy();
+      }
+    }
+  });
+
+  it('ماژول اطلس روی جدول اصلی سوار شده و با translate خوانده می‌شود', () => {
+    for (const locale of LOCALES) {
+      expect(translate(locale, 'world.layer.ja4_fingerprint')).not.toContain('world.');
+      expect(translate(locale, 'nav.atlas')).not.toContain('nav.');
+    }
+    expect(translate('fa', 'world.act.cover', { layer: 'X', plan: 'Y' })).toContain('X');
   });
 });

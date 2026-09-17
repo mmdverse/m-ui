@@ -42,6 +42,8 @@ Next.js 14 ساخته شده. هیچ‌چیز نمایشی نیست: اتصال 
 | مشاور اتصال | ✅ | امتیازدهی کانفیگ با رفتار مقیاس‌شدهٔ شبکهٔ ایران: SNIهای سوخته، پورت‌های مرده، اثر انگشت uTLS |
 | داشبورد، رویدادها، کاربران و نقش‌ها | ✅ | JWT + bcrypt + محدودیت نرخ ورود؛ نقش‌ها واقعاً اعمال می‌شوند |
 | امنیت داده | ✅ | رمزها و کلیدها با AES-256-GCM مهر می‌شوند و هیچ‌وقت از API برنمی‌گردند |
+| **اطلس فیلترینگ** | ✅ | ۱۱ کشور × ۱۸ لایه × ۱۵ طرح؛ هر ادعا با شبیه‌ساز Xray و حلقهٔ تست واقعی سنجیده می‌شود |
+| **خط لولهٔ ترانزیت** | ✅ | چند گره زنجیره‌ای + کانفیگ اعتبارسنجی‌شده با خود Xray (بدون رازِ واقعی) |
 | چندزبانه | ✅ | فارسی، انگلیسی، روسی، عربی، چینی — با RTL/LTR خودکار |
 | Docker | ✅ | `docker compose` از سورس (ایمیج آماده منتشر نشده) |
 
@@ -67,6 +69,7 @@ JWT_SECRET=$(openssl rand -hex 32) ADMIN_PASSWORD=یک-رمز-قوی MONGO_PASS=
 ### مستندات
 
 - [`docs/iran-censorship.md`](docs/iran-censorship.md) — مدل چهارلایه‌ای فیلترینگ ایران و مهندسی معکوس REALITY
+- [`docs/world-censorship.md`](docs/world-censorship.md) — اطلس ۱۱ کشور، شش اندازه‌گیری خودمان، شبیه‌ساز سانسور و حلقهٔ آزمون سرتاسری
 - [`docs/theme.md`](docs/theme.md) — توکن‌های تم دارک لوکس و قواعد دیزاین
 - [`docs/i18n.md`](docs/i18n.md) — ساختار چندزبانه و روش افزودن زبان تازه
 - [`testenv/README.md`](testenv/README.md) — اجرای تست‌های واقعی روی ماشین خودتان
@@ -99,6 +102,9 @@ installed and started on the target server. Every config is scored against
   (Direct / FRP / WireGuard tunnels are recorded, not executed yet.)
 - **Censorship advisor** — scores a config against how Iranian networks actually
   filter: dead SNIs, blocked ports, unsafe uTLS fingerprints, QUIC handling.
+- **Censorship atlas** — 11 countries × 18 filtering layers × 15 plans, backed by
+  a Python DPI simulator and a real-Xray end-to-end lab (`15/15` cases). Includes
+  a multi-hop transit pipeline whose configs are validated with Xray itself.
 - **Users and roles** — JWT, bcrypt, login rate limiting, enforced roles.
 - **Secrets stay secret** — AES-256-GCM at rest, never echoed by the API.
 - **Five languages** — Persian, English, Russian, Arabic, Chinese, with
@@ -123,7 +129,7 @@ JWT_SECRET=$(openssl rand -hex 32) ADMIN_PASSWORD=strong-pass MONGO_PASS=db-pass
 ```
 
 The panel listens on `http://localhost:3000`; the first admin is seeded from the
-environment. Tests: `npm test` (67 unit tests, no network needed).
+environment. Tests: `npm test` (114 unit tests, no network needed).
 
 ---
 
@@ -147,6 +153,8 @@ environment. Tests: `npm test` (67 unit tests, no network needed).
   со своими учётными данными для каждого конфига.
 - **WireGuard** — клиентская пара X25519 и корректный `.conf`.
 - **Обратные SSH-туннели** — реальный запуск и остановка через OpenSSH.
+- **Атлас фильтрации** — 11 стран × 18 слоёв × 15 схем, плюс симулятор DPI на
+  Python и сквозной стенд на настоящем Xray (15 из 15 случаев).
 - **Советник по блокировкам** — оценка конфига по измеренному поведению сети:
   сожжённые SNI, закрытые порты, рискованные отпечатки uTLS.
 - **Пользователи и роли** — JWT, bcrypt, ограничение попыток входа.
@@ -191,6 +199,8 @@ Next.js 14. لا شيء هنا شكليّ: الاتصال بالخوادم يُ�
   لكل ملف.
 - **WireGuard** — توليد زوج مفاتيح X25519 وملف `.conf` صالح.
 - **أنفاق SSH العكسية** — تشغيل وإيقاف حقيقيان عبر OpenSSH.
+- **أطلس الحجب** — ١١ بلدًا × ١٨ طبقة × ١٥ خطة، مع محاكي DPI بلغة Python ومختبر
+  حقيقي على Xray (١٥ من ١٥ حالة).
 - **مستشار الاتصال** — تقييم الإعداد حسب السلوك المقيس: نطاقات محجوبة، منافذ
   مسدودة، بصمات uTLS خطرة، وتعامل الشبكة مع QUIC.
 - **المستخدمون والأدوار** — JWT وbcrypt وتحديد محاولات الدخول.
@@ -234,6 +244,8 @@ SOCKS5 代理是真的在目标服务器上安装并启动的。每个配置在�
 - **SOCKS5 自动部署** — 在服务器上安装并运行 microsocks，每个配置独立账号密码。
 - **WireGuard** — 生成 X25519 客户端密钥对与可用的 `.conf`。
 - **SSH 反向隧道** — 通过 OpenSSH 真实启动与停止。
+- **审查地图** — 11 个国家 × 18 个过滤层 × 15 种方案，配 Python DPI 模拟器与
+  真实 Xray 端到端实验室（15/15 全部通过）。
 - **抗封锁顾问** — 按实测行为给配置打分：被封锁的 SNI、不可用端口、危险的
   uTLS 指纹、QUIC 处理方式。
 - **用户与角色** — JWT、bcrypt、登录限流，角色真正生效。
@@ -262,11 +274,12 @@ npm run build && npm start
 src/
 ├── components/       Layout، LanguageSwitcher، ui
 ├── i18n/             fa (منبع حقیقت) + en/ru/ar/zh + core + provider
-├── lib/              ssh · secrets · ratelimit · evasion · links · tunnel · monitor …
+├── lib/              ssh · secrets · ratelimit · evasion · links · tunnel · monitor ·
+│                     censorship/ (اطلس: مدل، موتور، خط لولهٔ ترانزیت)
 ├── pages/            ۹ صفحه + API routes
 └── styles/           تم دارک لوکس مونوکروم
-docs/                 iran-censorship · theme · i18n
-tests/                ۶۷ تست واحد (vitest)
+docs/                 iran-censorship · world-censorship · theme · i18n
+tests/                ۱۱۴ تست واحد (vitest)
 testenv/              هارنس تست واقعی + اعتبارسنجی Xray
 ```
 

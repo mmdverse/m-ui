@@ -48,3 +48,26 @@ curl -L -o testenv/bin/x.zip https://github.com/XTLS/Xray-core/releases/download
 unzip -o testenv/bin/x.zip -d testenv/bin && chmod +x testenv/bin/xray
 bash testenv/validate-iran-profiles.sh
 ```
+
+## حلقهٔ آزمون فیلترینگ (اطلس)
+
+```bash
+# شبیه‌ساز سانسور: ۶۶ بررسی واحد، بدون شبکه
+python3 testenv/censor/selftest.py
+
+# ۱۵ کیس سرتاسری با Xray واقعی: روسیه، چین، ترکمنستان، ایران، امارات، کنترل باز
+python3 testenv/world-matrix.py                  # باید ۱۵/۱۵ بدهد
+python3 testenv/world-matrix.py --only cn --keep  # فقط چین، زیرساخت زنده می‌ماند
+python3 testenv/world-matrix.py --stop           # بستنِ همه‌چیز
+
+# اندازه‌گیری‌ها (فایل‌های شاهد را بازتولید می‌کنند؛ کنار پوشهٔ censor ذخیره می‌شوند)
+python3 testenv/censor/fpmeasure.py --cert /tmp/world-matrix/reality.crt --write-ts
+python3 testenv/frag-probe.py       # ۱ رکورد → ۵ رکورد با finalmask
+python3 testenv/transit-lab.py      # سربار هر گره در زنجیرهٔ ۱ و ۳ گره‌ای
+```
+
+نقشهٔ فایل‌ها: `censor/parsers.py` (بازچینش TCP/رکورد، ClientHello/ECH/ALPN، JA3/JA4،
+QUIC v1)، `censor/engine.py` (لایه‌های هر کشور)، `censor/proxy.py` (DPI شبیه‌سازی‌شده
+روی TCP)، `censor/builders.py` + `censor/selftest.py` (تولید بسته و تست‌ها).
+
+شرح کامل مدل، اندازه‌گیری‌ها و محدودیت‌ها: [`docs/world-censorship.md`](../docs/world-censorship.md).

@@ -44,7 +44,10 @@ const groups: { labelKey: string; items: { icon: keyof typeof I; labelKey: strin
   },
   {
     labelKey: 'nav.g.filter',
-    items: [{ icon: 'shield', labelKey: 'nav.advisor', path: '/advisor', badgeKey: 'nav.badgeNew' }],
+    items: [
+      { icon: 'shield', labelKey: 'nav.advisor', path: '/advisor', badgeKey: 'nav.badgeNew' },
+      { icon: 'chip', labelKey: 'nav.atlas', path: '/atlas', badgeKey: 'nav.badgeNew' },
+    ],
   },
   {
     labelKey: 'nav.g.admin',

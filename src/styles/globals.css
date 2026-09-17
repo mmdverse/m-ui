@@ -463,3 +463,69 @@ html[dir='rtl'] .crumb svg, html[dir='rtl'] .check-glyph svg { transform: scaleX
 
 /* سوییچر زبان: منو در RTL و LTR از لبهٔ درست باز می‌شود */
 [role='listbox'] button { cursor: pointer; }
+
+/* ── atlas (نقشهٔ سانسور) ────────────────────────────────────────────────
+   همه‌چیز مونوکروم است؛ «وضعیت» از وزن خط و شفافیت می‌آید نه از رنگ. */
+
+.atlas-countries { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+
+.atlas-country {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 12px; border-radius: var(--r-md);
+  background: var(--bg-soft); border: 1px solid var(--line);
+  color: var(--fg-dim); font-family: inherit; font-size: 13px; cursor: pointer;
+  transition: border-color var(--t), color var(--t), background var(--t);
+}
+.atlas-country:hover { border-color: var(--line-2); color: var(--fg); }
+.atlas-country.is-active { border-color: var(--line-3); color: #fff; background: rgba(255, 255, 255, 0.05); }
+.atlas-country-meta { font-family: var(--mono); font-size: 11px; color: var(--fg-mute); }
+
+.atlas-env { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-top: 16px; }
+.atlas-check { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--fg-dim); cursor: pointer; }
+.atlas-check input { accent-color: #fafafa; width: 14px; height: 14px; }
+
+.atlas-system {
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11.5px; color: var(--fg-mute);
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+}
+.atlas-best { color: var(--fg-dim); }
+.atlas-best b { color: #fff; font-weight: 500; }
+
+.atlas-notes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.atlas-notes .badge { text-transform: none; letter-spacing: 0.01em; font-size: 11.5px; color: var(--fg-mute); }
+
+.atlas-plans { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.atlas-plan { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; background: var(--bg-soft); }
+.atlas-plan.is-blocked { opacity: 0.62; }
+.atlas-plan-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.atlas-plan-label { font-family: var(--mono); font-size: 12.5px; color: var(--fg); }
+.atlas-score { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--fg-mute); font-variant-numeric: tabular-nums; }
+.atlas-bar { width: 96px; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.atlas-bar i { display: block; height: 100%; background: linear-gradient(90deg, rgba(255, 255, 255, 0.45), #fff); }
+.atlas-blockers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.atlas-actions, .atlas-musthave { margin: 10px 0 0; padding-inline-start: 18px; font-size: 12.5px; color: var(--fg-dim); }
+.atlas-musthave { color: var(--fg-mute); font-family: var(--mono); font-size: 11.5px; }
+.atlas-snippet {
+  margin-top: 12px; padding: 14px; border-radius: var(--r-md);
+  background: var(--bg); border: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.6;
+  color: var(--fg-dim); overflow-x: auto; direction: ltr; text-align: left;
+}
+.atlas-dead { display: flex; flex-wrap: wrap; gap: 8px; }
+.atlas-sources { margin: 0; padding-inline-start: 18px; font-size: 12.5px; color: var(--fg-dim); display: grid; gap: 8px; }
+.atlas-sources a { color: var(--fg-dim); text-decoration: none; border-bottom: 1px solid var(--line-2); }
+.atlas-sources a:hover { color: #fff; border-bottom-color: #fff; }
+
+.badge-warn { border-color: var(--line-3); color: var(--fg); }
+.badge-bad { border-style: dashed; color: var(--fg-mute); }
+.badge-ok { border-color: transparent; background: #fafafa; color: var(--ink); }
+.verdict-resilient { border-color: transparent; background: #fafafa; color: var(--ink); }
+.verdict-usable { border-color: var(--line-3); color: var(--fg); }
+.verdict-fragile { border-style: dashed; color: var(--fg-dim); }
+.verdict-blocked { border-style: dotted; color: var(--fg-mute); }
+
+.cov-covered { border-color: var(--line-3); color: var(--fg); }
+.cov-partial { border-style: dashed; color: var(--fg-dim); }
+.cov-exposed { border-style: dotted; color: var(--fg-mute); }
+.cov-na { border-color: transparent; color: var(--fg-mute); }
