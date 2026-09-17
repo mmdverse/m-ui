@@ -11,6 +11,9 @@
   [![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
   [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
+
+  ⭐ 有用就 **[点个 Star](https://github.com/mmdverse/m-ui/stargazers)** · 💛 **[支持项目](#支持项目)**
+
   *自托管的代理服务器控制面板 —— 附带一套像代码一样被测量、被版本化、被测试的
   审查模型。*
 </div>
@@ -22,6 +25,8 @@
 **M-UI** 是用于管理服务器、代理配置与隧道的自托管面板。它通过 SSH 在真实机器
 上创建真实访问、让分享链接保持稳定，并且——大多数面板省略的部分——**对客户端
 与服务器之间的审查系统建模**，使一份配置在交付给用户之前就能被评估。
+
+**免费且开放：MIT 许可 —— 个人使用、商业使用、自托管，均无限制。**
 
 | | 内容 | 位置 |
 |---|---|---|
@@ -325,35 +330,68 @@ MONGO_PASS='数据库密码' \
 
 ## 支持项目
 
-项目由一个人维护。捐助用于最枯燥却最关键的部分：测量观测点，让审查地图能从
-它所描述的国家内部被验证，而不是只依赖一台机器；也用于扩大 FEP 样本量与保持
-实验室与 CI 全绿。
+**M-UI 免费 —— 个人可用，商业也可用。** MIT 许可：没有订阅，没有授权码，没有付费
+才能解锁的功能。可以直接使用、发布，也可以放进你的公司里。
 
-<table>
-<tr><th align="left">网络</th><th align="left">地址</th></tr>
-<tr><td><b>Bitcoin</b> <code>BTC</code></td><td><code>bc1q36uzqlkaav3lkscknhemcem0lcjtkhepdqckul</code></td></tr>
-<tr><td><b>BNB Smart Chain</b> <code>BEP-20</code></td><td><code>0x57902d3955D5F1C0fbCaEA0a12A7D691c792487E</code></td></tr>
-<tr><td><b>Solana</b> <code>SOL</code></td><td><code>4hCYetZjvK8mkuobRvPYXyRnM84aTj3q8LZ1GpiTK8HR</code></td></tr>
-<tr><td><b>Tron</b> <code>TRC-20</code></td><td><code>TVFZKSwMYNw1jiCyKKtKoVG3HbpB4DhsA5</code></td></tr>
-</table>
+如果它帮你省下一个难熬的夜晚，不妨回赠一点。项目只有一个人维护，每一笔捐助都
+用在项目无法造假的地方：**从它所描述的国家内部进行测量。**
+
+- **观测点。** 位于受限网络内的 VPS，让 DPI 实验室能从当地运行，把 `reported`
+  层变成 `measured`。
+- **更大的样本。** 用带置信区间的真实 FEP 比率取代「8 次中 4–5 次」。
+- **维持运转。** CI、测试机器与维护时间。
+
+### 地址
+
+<p align="center">
+  <img src="docs/assets/donate/donate-bitcoin.svg" width="860" alt="Bitcoin · BTC mainnet">
+</p>
 
 ```text
-Bitcoin (BTC)         bc1q36uzqlkaav3lkscknhemcem0lcjtkhepdqckul
-BNB Smart Chain      0x57902d3955D5F1C0fbCaEA0a12A7D691c792487E
-Solana (SOL)         4hCYetZjvK8mkuobRvPYXyRnM84aTj3q8LZ1GpiTK8HR
-Tron (TRC-20)        TVFZKSwMYNw1jiCyKKtKoVG3HbpB4DhsA5
+bc1q36uzqlkaav3lkscknhemcem0lcjtkhepdqckul
 ```
 
-转账前请在自己的钱包中核对地址。把带有可复现结果的用例加进
-`world-matrix.py`，其价值超过大多数 pull request。
+<p align="center">
+  <img src="docs/assets/donate/donate-bnb.svg" width="860" alt="BNB Smart Chain · BEP-20">
+</p>
+
+```text
+0x57902d3955D5F1C0fbCaEA0a12A7D691c792487E
+```
+
+<p align="center">
+  <img src="docs/assets/donate/donate-solana.svg" width="860" alt="Solana · SOL mainnet">
+</p>
+
+```text
+4hCYetZjvK8mkuobRvPYXyRnM84aTj3q8LZ1GpiTK8HR
+```
+
+<p align="center">
+  <img src="docs/assets/donate/donate-tron.svg" width="860" alt="Tron · TRC-20">
+</p>
+
+```text
+TVFZKSwMYNw1jiCyKKtKoVG3HbpB4DhsA5
+```
+
+用钱包应用扫描卡片，或使用下方的复制按钮。转账前请在钱包中核对地址 ——
+Solana 与 Tron 的手续费最低。
+
+**不打算出钱？** 把一个带可复现结果的用例加进 `world-matrix.py`，价值超过大多数
+pull request。
 
 ---
 
 ## 许可
 
-MIT —— 见 [LICENSE](LICENSE)。本项目面向合法用途：运行你自己的基础设施、在
-你有权使用的网络上保护隐私，以及审查研究。模型依据已发表研究与公开测量描述
-过滤系统；其中不含任何凭据、可用的绕过基础设施或用户数据。
+**MIT —— 可自由使用、修改、自托管与分发，包括商业用途。** 唯一条件：保留版权
+声明。[LICENSE](LICENSE) 就是全部约定：没有单独的商用档位，没有按服务器收费，
+也没有授权码。
+
+本项目面向合法用途：运行你自己的基础设施、在你有权使用的网络上保护隐私，以及
+审查研究。遵守适用于你的法律是你的责任。模型依据已发表研究与公开测量描述过滤
+系统；其中不含任何凭据、可用的绕过基础设施或用户数据。
 
 <div align="center">
 <br>

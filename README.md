@@ -11,6 +11,9 @@
   [![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
   [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
+
+  ⭐ **[Star it](https://github.com/mmdverse/m-ui/stargazers)** if it is useful · 💛 **[Support the project](#support-the-project)**
+
   *Self-hosted control plane for proxy servers — with a censorship model that is
   measured, versioned and tested like the rest of the code.*
 </div>
@@ -24,6 +27,8 @@ tunnels. It provisions real access on real machines over SSH, keeps every share
 link stable, and — the part most panels skip — **models the censorship system
 between your client and your server**, so a configuration can be evaluated
 before a single user is handed a link.
+
+**Free and open: MIT licensed — personal use, commercial use and self-hosting, no restrictions.**
 
 Three things live in this repository:
 
@@ -751,60 +756,74 @@ testenv/
 
 ## Support the project
 
-M-UI is maintained by one person. Donations pay for the boring but decisive
-part: measurement vantage points, so the atlas can be validated from inside the
-countries it describes instead of from a single machine.
+**M-UI is free — personal use and commercial use, no strings.** MIT license: no
+subscription, no license key, nothing locked behind a payment. Use it, ship it,
+put it inside your company.
 
-**What donations go towards**
+If it saves you a bad night, send something back. One person maintains this, and
+every donation goes to the one thing the project cannot fake: **measurement from
+inside the countries it describes.**
 
-- VPS instances in additional vantage points, used to re-run the DPI laboratory
-  in-country and replace `reported` layers with `measured` ones.
-- Larger FEP sample sizes, so "4–5 of 8" becomes a rate with a confidence
-  interval.
-- Keeping the test lab and the CI green.
+- **Vantage points.** VPS instances inside censored networks, so the DPI
+  laboratory runs from there and layers marked `reported` become `measured`.
+- **Bigger samples.** A real FEP rate with a confidence interval, instead of
+  "4–5 of 8".
+- **Keeping it alive.** CI, test machines, and the maintenance hours.
 
-<table>
-<tr><th align="left">Network</th><th align="left">Address</th></tr>
-<tr><td><b>Bitcoin</b> <code>BTC</code></td><td><code>bc1q36uzqlkaav3lkscknhemcem0lcjtkhepdqckul</code></td></tr>
-<tr><td><b>BNB Smart Chain</b> <code>BEP-20</code></td><td><code>0x57902d3955D5F1C0fbCaEA0a12A7D691c792487E</code></td></tr>
-<tr><td><b>Solana</b> <code>SOL</code></td><td><code>4hCYetZjvK8mkuobRvPYXyRnM84aTj3q8LZ1GpiTK8HR</code></td></tr>
-<tr><td><b>Tron</b> <code>TRC-20</code></td><td><code>TVFZKSwMYNw1jiCyKKtKoVG3HbpB4DhsA5</code></td></tr>
-</table>
+### Addresses
 
-<details>
-<summary><b>Copy-friendly addresses</b></summary>
+<p align="center">
+  <img src="docs/assets/donate/donate-bitcoin.svg" width="860" alt="Bitcoin · BTC mainnet">
+</p>
 
 ```text
-Bitcoin (BTC)
 bc1q36uzqlkaav3lkscknhemcem0lcjtkhepdqckul
+```
 
-BNB Smart Chain (BEP-20)
+<p align="center">
+  <img src="docs/assets/donate/donate-bnb.svg" width="860" alt="BNB Smart Chain · BEP-20">
+</p>
+
+```text
 0x57902d3955D5F1C0fbCaEA0a12A7D691c792487E
+```
 
-Solana (SOL)
+<p align="center">
+  <img src="docs/assets/donate/donate-solana.svg" width="860" alt="Solana · SOL mainnet">
+</p>
+
+```text
 4hCYetZjvK8mkuobRvPYXyRnM84aTj3q8LZ1GpiTK8HR
+```
 
-Tron (TRC-20)
+<p align="center">
+  <img src="docs/assets/donate/donate-tron.svg" width="860" alt="Tron · TRC-20">
+</p>
+
+```text
 TVFZKSwMYNw1jiCyKKtKoVG3HbpB4DhsA5
 ```
-</details>
 
-Verify the address in your own wallet before sending, and prefer networks with
-low fees. If you would rather contribute code or measurements, a case added to
-`world-matrix.py` with a reproducible result is worth more than most pull
-requests.
+Scan a card with your wallet app, or use the copy button under it. Check the
+address in your wallet before sending — network fees are lowest on Solana and
+Tron.
+
+**Not a money person?** A case added to `world-matrix.py` with a reproducible
+result is worth more than most pull requests.
 
 ---
 
 ## License & use
 
-MIT — see [LICENSE](LICENSE).
+**MIT — free to use, modify, self-host and ship, including commercially.** One
+condition: keep the copyright notice. [LICENSE](LICENSE) is the whole agreement —
+there is no separate commercial tier, no per-server fee, no license key.
 
-M-UI is built for lawful use: operating your own infrastructure, privacy on
-networks you are entitled to use, and censorship research. You are responsible
-for complying with the laws that apply to you. The model in this repository
-describes filtering systems from published research and public measurements; it
-contains no credentials, no working bypass infrastructure and no user data.
+M-UI is meant for lawful use: your own infrastructure, privacy on networks you
+are entitled to use, and censorship research. You are responsible for following
+the laws that apply to you. The model in this repository describes filtering
+systems from published research and public measurements; it contains no
+credentials, no working bypass infrastructure and no user data.
 
 <div align="center">
 <br>

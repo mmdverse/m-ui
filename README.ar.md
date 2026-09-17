@@ -11,6 +11,9 @@
   [![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
   [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
+
+  ⭐ **[أضف نجمة](https://github.com/mmdverse/m-ui/stargazers)** إن كان مفيداً · 💛 **[دعم المشروع](#دعم-المشروع)**
+
   *لوحة استضافة ذاتية لإدارة الخوادم والبروكسي — مع نموذج للرقابة يُقاس
   ويُصدار ويُختبر مثل باقي الشيفرة.*
 </div>
@@ -25,6 +28,8 @@
 وصولاً حقيقياً على أجهزة حقيقية عبر SSH، وتُبقي روابط المشاركة ثابتة، وتُنمذج —
 وهو ما تتجاهله أغلب اللوحات — **نظام الحجب بين العميل والخادم**، بحيث يمكن تقييم
 الإعداد قبل وصوله إلى المستخدم.
+
+**مجاني ومفتوح: رخصة MIT — استخدام شخصي وتجاري واستضافة ذاتية، بلا قيود.**
 
 | | ما هو | أين |
 |---|---|---|
@@ -337,39 +342,71 @@ MONGO_PASS='كلمة-مرور-القاعدة' \
 
 ## دعم المشروع
 
-يشرف على المشروع شخص واحد. تذهب التبرعات إلى الجزء المملّ لكن الحاسم: نقاط
-قياس، ليُتحقق من الأطلس من داخل البلدان التي يصفها لا من جهاز واحد. وكذلك إلى
-تكبير عيّنة FEP وإبقاء المختبر وCI أخضر.
+**M-UI مجاني — للاستخدام الشخصي والتجاري.** رخصة MIT: بلا اشتراك، بلا مفتاح
+ترخيص، وبلا ميزة محجوبة خلف الدفع. استخدمه، وانشره، وضعْه داخل شركتك.
 
-<table>
-<tr><th align="right">الشبكة</th><th align="right">العنوان</th></tr>
-<tr><td><b>Bitcoin</b> <code>BTC</code></td><td><code>bc1q36uzqlkaav3lkscknhemcem0lcjtkhepdqckul</code></td></tr>
-<tr><td><b>BNB Smart Chain</b> <code>BEP-20</code></td><td><code>0x57902d3955D5F1C0fbCaEA0a12A7D691c792487E</code></td></tr>
-<tr><td><b>Solana</b> <code>SOL</code></td><td><code>4hCYetZjvK8mkuobRvPYXyRnM84aTj3q8LZ1GpiTK8HR</code></td></tr>
-<tr><td><b>Tron</b> <code>TRC-20</code></td><td><code>TVFZKSwMYNw1jiCyKKtKoVG3HbpB4DhsA5</code></td></tr>
-</table>
+إن وفّر عليك ليلة متعبة، أعِد شيئاً. شخص واحد يدير هذا المشروع، وكل تبرّع يذهب
+إلى ما لا يستطيع المشروع تجاوزه: **القياس من داخل البلدان التي يصفها.**
+
+- **نقاط مراقبة.** خوادم داخل شبكات محجوبة، ليُشغَّل مختبر DPI من هناك وتتحوّل
+  الطبقات الموسومة `reported` إلى `measured`.
+- **عينات أكبر.** معدّل FEP حقيقي بفاصل ثقة، بدل «٤–٥ من ٨».
+- **إبقاؤه حياً.** CI وأجهزة الاختبار وساعات الصيانة.
+
+### العناوين
+
+<p align="center">
+  <img src="docs/assets/donate/donate-bitcoin.svg" width="860" alt="Bitcoin · BTC mainnet">
+</p>
 
 ```text
-Bitcoin (BTC)         bc1q36uzqlkaav3lkscknhemcem0lcjtkhepdqckul
-BNB Smart Chain      0x57902d3955D5F1C0fbCaEA0a12A7D691c792487E
-Solana (SOL)         4hCYetZjvK8mkuobRvPYXyRnM84aTj3q8LZ1GpiTK8HR
-Tron (TRC-20)        TVFZKSwMYNw1jiCyKKtKoVG3HbpB4DhsA5
+bc1q36uzqlkaav3lkscknhemcem0lcjtkhepdqckul
 ```
 
-تحقّق من العنوان في محفظتك قبل الإرسال. وحالة واحدة تُضاف إلى `world-matrix.py`
-بنتيجة قابلة للتكرار تساوي أكثر من معظم طلبات الدمج.
+<p align="center">
+  <img src="docs/assets/donate/donate-bnb.svg" width="860" alt="BNB Smart Chain · BEP-20">
+</p>
+
+```text
+0x57902d3955D5F1C0fbCaEA0a12A7D691c792487E
+```
+
+<p align="center">
+  <img src="docs/assets/donate/donate-solana.svg" width="860" alt="Solana · SOL mainnet">
+</p>
+
+```text
+4hCYetZjvK8mkuobRvPYXyRnM84aTj3q8LZ1GpiTK8HR
+```
+
+<p align="center">
+  <img src="docs/assets/donate/donate-tron.svg" width="860" alt="Tron · TRC-20">
+</p>
+
+```text
+TVFZKSwMYNw1jiCyKKtKoVG3HbpB4DhsA5
+```
+
+امسح البطاقة بتطبيق المحفظة، أو استخدم زر النسخ أسفلها. تحقّق من العنوان في
+محفظتك قبل الإرسال — الرسوم الأدنى على Solana وTron.
+
+**لا تملك مالاً للمساهمة؟** حالة واحدة تُضاف إلى `world-matrix.py` بنتيجة قابلة
+للتكرار تساوي أكثر من معظم طلبات الدمج.
 
 ---
 
 ## الترخيص
 
-MIT — انظر [LICENSE](LICENSE). المشروع مخصّص للاستخدام القانوني: تشغيل بنيتك
-التحتية، والخصوصية على الشبكات التي يحقّ لك استخدامها، وأبحاث الحجب. يصف
+**MIT — الاستخدام والتعديل والاستضافة الذاتية والنشر مسموحة، بما في ذلك
+تجارياً.** الشرط الوحيد: الإبقاء على إشعار حقوق النشر. ملف [LICENSE](LICENSE) هو
+الاتفاق كاملاً: لا فئة تجارية منفصلة، ولا رسوم لكل خادم، ولا مفتاح ترخيص.
+
+M-UI مخصّص للاستخدام القانوني: بنيتك التحتية، والخصوصية على شبكات يحقّ لك
+استخدامها، وأبحاث الحجب. أنت مسؤول عن الالتزام بالقوانين التي تنطبق عليك. يصف
 النموذج أنظمة حجب مستقاة من أبحاث منشورة وقياسات عامة؛ ولا يحتوي على أي بيانات
 دخول أو بنية تجاوز فعّالة أو بيانات مستخدمين.
 
 </div>
-
 <div align="center">
 <br>
 <b>صُنع بـ ❤️ بواسطة <a href="https://t.me/llllxyz">Mohammad</a></b><br>
