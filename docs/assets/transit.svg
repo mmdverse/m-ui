@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="Multi-hop transit pipeline">
+  <defs>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8b8b93"/>
+    </marker>
+    <pattern id="g3" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="#ffffff" stroke-opacity="0.028" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="420" fill="#0a0a0b"/>
+  <rect width="1200" height="420" fill="url(#g3)"/>
+
+  <text x="40" y="42" font-family="ui-monospace,monospace" font-size="12.5" fill="#8b8b93" letter-spacing="1.6">TRANSIT PIPELINE — ONLY THE ENTRY LEG IS OBSERVED BY THE TARGET COUNTRY</text>
+
+  <!-- client -->
+  <g>
+    <rect x="40" y="96" width="180" height="110" rx="10" fill="#111113" stroke="#ffffff" stroke-opacity="0.14"/>
+    <text x="58" y="124" font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">client</text>
+    <text x="58" y="146" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">censored network</text>
+    <text x="58" y="164" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">IR / RU / CN / TM</text>
+    <text x="58" y="186" font-family="ui-monospace,monospace" font-size="11.5" fill="#a1a1aa">uTLS chrome</text>
+  </g>
+
+  <!-- observer -->
+  <g>
+    <rect x="260" y="96" width="190" height="110" rx="10" fill="#141416" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.4"/>
+    <text x="278" y="124" font-family="ui-monospace,monospace" font-size="13" fill="#f5f5f5">middlebox</text>
+    <text x="278" y="146" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">SNI · ECH · QUIC v1</text>
+    <text x="278" y="164" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">FEP · JA4 · reassembly</text>
+    <text x="278" y="186" font-family="ui-monospace,monospace" font-size="11.5" fill="#a1a1aa">in-path, stateful</text>
+  </g>
+
+  <!-- entry -->
+  <g>
+    <rect x="490" y="76" width="210" height="150" rx="10" fill="#161618" stroke="#ffffff" stroke-opacity="0.42" stroke-width="1.6"/>
+    <text x="508" y="104" font-family="ui-monospace,monospace" font-size="13" fill="#f5f5f5">entry · tr:443</text>
+    <text x="508" y="126" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">VLESS + REALITY</text>
+    <text x="508" y="144" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">flow: xtls-rprx-vision</text>
+    <text x="508" y="162" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">finalmask fragment</text>
+    <text x="508" y="180" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">length 100-200 ms delay 10-20</text>
+    <text x="508" y="204" font-family="ui-monospace,monospace" font-size="11.5" fill="#a1a1aa">borrowed cert from a live site</text>
+  </g>
+
+  <!-- relay -->
+  <g>
+    <rect x="740" y="96" width="180" height="110" rx="10" fill="#111113" stroke="#ffffff" stroke-opacity="0.14"/>
+    <text x="758" y="124" font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">relay · de:8443</text>
+    <text x="758" y="146" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">VLESS + REALITY</text>
+    <text x="758" y="164" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">burnable address</text>
+    <text x="758" y="186" font-family="ui-monospace,monospace" font-size="11.5" fill="#a1a1aa">swap IP, keep config</text>
+  </g>
+
+  <!-- exit -->
+  <g>
+    <rect x="960" y="96" width="200" height="110" rx="10" fill="#111113" stroke="#ffffff" stroke-opacity="0.14"/>
+    <text x="978" y="124" font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">exit · nl:2053</text>
+    <text x="978" y="146" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">VLESS + REALITY</text>
+    <text x="978" y="164" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">chained outbound</text>
+    <text x="978" y="186" font-family="ui-monospace,monospace" font-size="11.5" fill="#a1a1aa">the IP the world sees</text>
+  </g>
+
+  <g stroke="#8b8b93" stroke-width="1.3" fill="none" marker-end="url(#b)" stroke-opacity="0.8">
+    <path d="M220 151 H260"/>
+    <path d="M450 151 H490"/>
+    <path d="M700 151 H740"/>
+    <path d="M920 151 H960"/>
+  </g>
+
+  <!-- measured overhead strip -->
+  <g>
+    <rect x="40" y="270" width="1120" height="110" rx="10" fill="#0e0e10" stroke="#ffffff" stroke-opacity="0.1"/>
+    <text x="60" y="298" font-family="ui-monospace,monospace" font-size="12" fill="#8b8b93" letter-spacing="1.2">MEASURED ON THIS MACHINE (Xray 26.3.27 · loopback · median of 12 requests)</text>
+    <g font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">
+      <text x="60" y="330">1 hop</text><text x="150" y="330" fill="#8b8b93">91.463 ms</text>
+      <text x="330" y="330">3 hops</text><text x="420" y="330" fill="#8b8b93">91.906 ms</text>
+      <text x="600" y="330">per-hop processing</text><text x="800" y="330" fill="#a1a1aa">0.222 ms</text>
+    </g>
+    <text x="60" y="362" font-family="ui-monospace,monospace" font-size="11.5" fill="#6b6b73">Loopback processing cost only. Geographic latency is not modelled — the number above is what a hop costs in CPU, not in distance.</text>
+  </g>
+</svg>

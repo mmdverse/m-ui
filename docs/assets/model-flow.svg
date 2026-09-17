@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Censorship model flow">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8b8b93"/>
+    </marker>
+    <pattern id="g2" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="#ffffff" stroke-opacity="0.028" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="460" fill="#0a0a0b"/>
+  <rect width="1200" height="460" fill="url(#g2)"/>
+
+  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12.5" fill="#8b8b93" letter-spacing="1.6">
+    <text x="40" y="42">CENSORSHIP MODEL — ONE SOURCE OF TRUTH, TWO RUNTIMES</text>
+  </g>
+
+  <!-- sources -->
+  <g>
+    <rect x="40" y="70" width="210" height="86" rx="10" fill="#111113" stroke="#ffffff" stroke-opacity="0.14"/>
+    <text x="58" y="98" font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">public research</text>
+    <text x="58" y="120" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">17 sources · papers,</text>
+    <text x="58" y="138" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">reports, vendor data</text>
+  </g>
+  <g>
+    <rect x="40" y="176" width="210" height="86" rx="10" fill="#111113" stroke="#ffffff" stroke-opacity="0.14"/>
+    <text x="58" y="204" font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">our measurements</text>
+    <text x="58" y="226" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">JA4 · fragmentation ·</text>
+    <text x="58" y="244" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">hop overhead · FEP</text>
+  </g>
+
+  <!-- country profiles -->
+  <g>
+    <rect x="330" y="106" width="220" height="120" rx="10" fill="#141416" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.4"/>
+    <text x="348" y="134" font-family="ui-monospace,monospace" font-size="13" fill="#f5f5f5">countries.ts</text>
+    <text x="348" y="156" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">11 profiles</text>
+    <text x="348" y="174" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">18 layers × severity</text>
+    <text x="348" y="192" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">15 plans · coverage</text>
+  </g>
+
+  <!-- rules.json -->
+  <g>
+    <rect x="330" y="262" width="220" height="60" rx="10" fill="#111113" stroke="#ffffff" stroke-opacity="0.14"/>
+    <text x="348" y="288" font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">rules.json</text>
+    <text x="348" y="307" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">generated · byte-compared in CI</text>
+  </g>
+
+  <!-- two runtimes -->
+  <g>
+    <rect x="640" y="70" width="250" height="96" rx="10" fill="#141416" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.4"/>
+    <text x="658" y="98" font-family="ui-monospace,monospace" font-size="13" fill="#f5f5f5">TypeScript engine</text>
+    <text x="658" y="120" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">score = 100 − Σ penalty</text>
+    <text x="658" y="138" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">ranked plans + config snippets</text>
+  </g>
+  <g>
+    <rect x="640" y="190" width="250" height="96" rx="10" fill="#141416" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.4"/>
+    <text x="658" y="218" font-family="ui-monospace,monospace" font-size="13" fill="#f5f5f5">Python simulator</text>
+    <text x="658" y="240" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">ClientHello / QUIC / FEP parser</text>
+    <text x="658" y="258" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">per-layer decisions + evidence</text>
+  </g>
+
+  <!-- outputs -->
+  <g>
+    <rect x="960" y="70" width="200" height="96" rx="10" fill="#111113" stroke="#ffffff" stroke-opacity="0.14"/>
+    <text x="978" y="98" font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">/atlas page</text>
+    <text x="978" y="120" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">per-country dossier,</text>
+    <text x="978" y="138" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">ranked plans, transit</text>
+  </g>
+  <g>
+    <rect x="960" y="190" width="200" height="96" rx="10" fill="#111113" stroke="#ffffff" stroke-opacity="0.14"/>
+    <text x="978" y="218" font-family="ui-monospace,monospace" font-size="13" fill="#e5e5e5">world-matrix</text>
+    <text x="978" y="240" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">15 end-to-end cases</text>
+    <text x="978" y="258" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">against real Xray</text>
+  </g>
+
+  <!-- arrows -->
+  <g stroke="#8b8b93" stroke-width="1.3" fill="none" marker-end="url(#a)" stroke-opacity="0.75">
+    <path d="M250 113 H330"/>
+    <path d="M250 219 H290 V166 H330"/>
+    <path d="M550 166 H590 V118 H640"/>
+    <path d="M550 166 H595"/>
+    <path d="M550 292 H596 V238 H640"/>
+    <path d="M890 118 H930 V118 H960"/>
+    <path d="M890 238 H930 V238 H960"/>
+    <path d="M760 166 V190"/>
+  </g>
+
+  <!-- footer note -->
+  <rect x="40" y="368" width="1120" height="52" rx="10" fill="#0e0e10" stroke="#ffffff" stroke-opacity="0.1"/>
+  <text x="60" y="392" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">Every coverage claim in the model needs a witness — a simulator decision or a lab case. A test fails the build when</text>
+  <text x="60" y="410" font-family="ui-monospace,monospace" font-size="11.5" fill="#8b8b93">the TypeScript model and the simulator drift apart, or when a layer is marked “simulated” without a measurement.</text>
+</svg>
